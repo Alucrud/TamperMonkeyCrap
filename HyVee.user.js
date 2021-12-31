@@ -7,7 +7,7 @@
 // @match        https://www.hy-vee.com/*
 // @require https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js
 // @grant        none
-// @updateURL    https://github.com/Alucrud/TamperMonkeyCrap/raw/main/1337to.user.js
+// @updateURL    https://github.com/Alucrud/TamperMonkeyCrap/raw/main/HyVee.user.js
 // ==/UserScript==
 
 
