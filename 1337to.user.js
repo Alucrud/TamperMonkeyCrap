@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         1337x.to
 // @namespace    https://github.com/Alucrud/TamperMonkeyCrap/
-// @version      0.2
+// @version      0.21
 // @description  1337x.to
 // @author       Alucrud
 // @updateURL    https://github.com/Alucrud/TamperMonkeyCrap/raw/main/1337to.user.js
@@ -15,7 +15,7 @@ const timer = ms => new Promise(res => setTimeout(res, ms))
 
 async function load () { // We need to wrap the loop into an async function for this to work
   for (var i = 0; i < 1000; i++) {
-      $(".box-info").remove(); //remove network status box
+      //$(".box-info").remove(); //remove network status box - This removes the torrent info window too
       $(".banner-box.movie").remove(); //remove scrolling movie torrents
       $("h3:contains('Most Popular Torrents this week')").closest("div").remove(); //remove top torrents
       $("a[title='Most Popular Foreign Movies This Week']").closest("div").remove(); //remove foreign movie torrents
