@@ -1,12 +1,13 @@
 // ==UserScript==
 // @name         Boardgame Geek
-// @namespace    http://tampermonkey.net/
-// @version      0.1
+// @namespace    https://github.com/Alucrud/TamperMonkeyCrap/
+// @version      0.2
 // @description  BGG
 // @author       Alucrud
 // @include      https://boardgamegeek.com/*
 // @require https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js
 // @grant        none
+// @updateURL    https://github.com/Alucrud/TamperMonkeyCrap/raw/main/1337to.user.js
 // ==/UserScript==
 
 // Returns a Promise that resolves after "ms" Milliseconds
