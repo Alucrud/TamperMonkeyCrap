@@ -6,7 +6,7 @@
 // @grant        none
 // @noframes
 // @run-at       document-idle
-// @updateURL    https://github.com/Alucrud/TamperMonkeyCrap/raw/main/1337to.user.js
+// @updateURL    https://github.com/Alucrud/TamperMonkeyCrap/raw/main/Dayforce%20Sign%20In.user.js
 // ==/UserScript==
 
 document.getElementById("idp_OtherRpRadioButton").click();
