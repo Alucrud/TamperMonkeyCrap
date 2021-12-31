@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Amazon
 // @namespace    https://github.com/Alucrud/TamperMonkeyCrap/
-// @version      0.1
+// @version      0.2
 // @description  try to take over the world!
 // @author       You
 // @match        https://*.amazon.com/*/dp/*
