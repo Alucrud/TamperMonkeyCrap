@@ -6,7 +6,7 @@
 // @author       Mark Wilson
 // @match        *.reddit.com/*
 // @grant        none
-// @updateURL    https://github.com/Alucrud/TamperMonkeyCrap/raw/main/Reddit%20Hider.user.js
+// @updateURL    https://github.com/Alucrud/TamperMonkeyCrap/raw/main/pc/RedditHider.user.js
 // ==/UserScript==
 
 // de-linkify domains
