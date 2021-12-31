@@ -10,7 +10,7 @@
 // @require https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js
 // @grant        none
 // @run-at       document-start
-// @updateURL    https://github.com/Alucrud/TamperMonkeyCrap/raw/main/Linn%20County.user.js
+// @updateURL    https://github.com/Alucrud/TamperMonkeyCrap/raw/main/pc/LinnCounty.user.js
 // ==/UserScript==
 
 // Returns a Promise that resolves after "ms" Milliseconds
