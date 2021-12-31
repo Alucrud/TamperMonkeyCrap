@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         1337x.to
-// @namespace    http://tampermonkey.net/
-// @version      0.1
+// @namespace    https://github.com/Alucrud/TamperMonkeyCrap/
+// @version      0.2
 // @description  1337x.to
 // @author       Alucrud
 // @updateURL    https://github.com/Alucrud/TamperMonkeyCrap/raw/main/1337to.user.js
