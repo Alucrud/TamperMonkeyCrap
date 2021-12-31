@@ -1,10 +1,12 @@
 // ==UserScript==
 // @name Dayforce Sign In
-// @version 0.0.1
-// @match https://adfs.linncounty.org/adfs/ls/idpinitiatedSignOn.aspx
-// @grant none
+// @namespace    https://github.com/Alucrud/TamperMonkeyCrap/
+// @version      0.2
+// @match        https://adfs.linncounty.org/adfs/ls/idpinitiatedSignOn.aspx
+// @grant        none
 // @noframes
-// @run-at document-idle
+// @run-at       document-idle
+// @updateURL    https://github.com/Alucrud/TamperMonkeyCrap/raw/main/1337to.user.js
 // ==/UserScript==
 
 document.getElementById("idp_OtherRpRadioButton").click();
