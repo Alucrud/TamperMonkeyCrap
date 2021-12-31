@@ -7,7 +7,7 @@
 // @include      https://boardgamegeek.com/*
 // @require https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js
 // @grant        none
-// @updateURL    https://github.com/Alucrud/TamperMonkeyCrap/raw/main/1337to.user.js
+// @updateURL    https://github.com/Alucrud/TamperMonkeyCrap/raw/main/Boardgame%20Geek.user.js
 // ==/UserScript==
 
 // Returns a Promise that resolves after "ms" Milliseconds
