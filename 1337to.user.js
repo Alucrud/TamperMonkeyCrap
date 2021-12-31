@@ -4,8 +4,9 @@
 // @version      0.1
 // @description  1337x.to
 // @author       Alucrud
+// @updateURL    https://github.com/Alucrud/TamperMonkeyCrap/raw/main/1337to.user.js
 // @include      https://www.1337x.to/*
-// @require https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js
+// @require      https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js
 // @grant        none
 // ==/UserScript==
 
