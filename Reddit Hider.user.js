@@ -1,11 +1,12 @@
 // ==UserScript==
 // @name         Reddit Hider
-// @namespace    http://your.homepage/
-// @version      0.1
+// @namespace    https://github.com/Alucrud/TamperMonkeyCrap/
+// @version      0.2
 // @description  Hides stuff on Reddit
 // @author       Mark Wilson
 // @match        *.reddit.com/*
 // @grant        none
+// @updateURL    https://github.com/Alucrud/TamperMonkeyCrap/raw/main/1337to.user.js
 // ==/UserScript==
 
 // de-linkify domains
