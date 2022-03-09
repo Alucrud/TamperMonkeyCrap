@@ -45,7 +45,7 @@
 //────────REMEMBER ME!─────────
 
 function clunk() {
-    $("label:contains('Remember')").click();
+    $("[type='checkbox'][id*='emember']").click();
 }
 
 const clunkTimer = setTimeout(clunk, 1000);
