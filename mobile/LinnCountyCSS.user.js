@@ -1,10 +1,11 @@
 // ==UserScript==
-// @name     Linn CSS
+// @name        Linn CSS
 // @description Attempting to fix the Linn County website
-// @include  https://www.linncountyiowa.gov/*
-// @grant    GM_addStyle
-// @run-at   document-start
-// @version  0.1
+// @include     https://www.linncountyiowa.gov/*
+// @grant       GM_addStyle
+// @run-at      document-start
+// @version     0.1
+// @updateURL   https://github.com/Alucrud/TamperMonkeyCrap/raw/main/mobile/LinnCountyCSS.user.js
 // ==/UserScript==
 
 GM_addStyle ( `
