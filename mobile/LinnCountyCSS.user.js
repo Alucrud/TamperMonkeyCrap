@@ -5,7 +5,6 @@
 // @grant       GM_addStyle
 // @run-at      document-start
 // @version     0.1
-// @updateURL   https://github.com/Alucrud/TamperMonkeyCrap/raw/main/mobile/LinnCountyCSS.user.js
 // ==/UserScript==
 
 GM_addStyle ( `
