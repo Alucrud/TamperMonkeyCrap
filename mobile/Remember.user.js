@@ -8,7 +8,6 @@
 // @grant       none
 // @version     0.2
 // @require     https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js
-// @updateURL   https://github.com/Alucrud/TamperMonkeyCrap/raw/main/mobile/Remember.user.js
 // ==/UserScript==
 
 //─────────────────────────────
