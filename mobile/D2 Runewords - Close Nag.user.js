@@ -1,5 +1,6 @@
 // ==UserScript==
 // @name D2 Runewords - Close Nag
+// @namespace    https://github.com/Alucrud/TamperMonkeyCrap/
 // @version 0.0.1
 // @match https://d2runewords.com/*
 // @grant none
