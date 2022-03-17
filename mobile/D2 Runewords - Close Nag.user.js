@@ -11,3 +11,5 @@
 
 // #community-note .note
 $("#community-note").remove();
+
+// test
