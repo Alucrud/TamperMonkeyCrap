@@ -1,5 +1,6 @@
 // ==UserScript==
 // @name        Linn CSS
+// @namespace    https://github.com/Alucrud/TamperMonkeyCrap/
 // @description Attempting to fix the Linn County website
 // @include     https://www.linncountyiowa.gov/*
 // @grant       GM_addStyle
