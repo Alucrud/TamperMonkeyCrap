@@ -30,14 +30,14 @@ GM_addStyle ( `
 
 /* header padding */
 #bannerLogoTS {
-  padding-top: 0 !important;
-  padding-bottom: 0 !important;
+  padding-top: 0;
+  padding-bottom: 0;
 }
 
 /* Nav menu padding */
 .navMainItem {
-  padding-top: 10px;
-  padding-bottom: 10px;
+  padding-top: 10px !important;
+  padding-bottom: 10px !important;
 }
 
 /* Search button padding */
