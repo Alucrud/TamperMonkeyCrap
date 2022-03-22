@@ -30,8 +30,8 @@ GM_addStyle ( `
 
 /* header padding */
 #bannerLogoTS {
-  padding-top: 0;
-  padding-bottom: 0;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
 }
 
 /* Nav menu padding */
