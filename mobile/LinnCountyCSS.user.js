@@ -86,6 +86,9 @@ GM_addStyle ( `
 
 /* POPULAR SERVICES SECTION */
 /* Padding  */
+#bannerSizingTS {
+  padding: 0 !important;
+}
 #bannerSizing2TS {
   padding: 0 !important;
 }
