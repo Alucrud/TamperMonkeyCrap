@@ -48,14 +48,9 @@ GM_addStyle ( `
 
 
 /* TOP MENU STUFF */
-/* delete this */
-#mainNavMegaMenu31 {
-  display:block;
-}
-
 /* padding */
 .megaMenuItem {
-  padding: 0;
+  padding: 0 !important;
 }
 
 /* padding after lists */
