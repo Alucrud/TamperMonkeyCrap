@@ -55,21 +55,21 @@ GM_addStyle ( `
 
 /* padding after lists */
 .megaMenuItem > ol {
-  margin-bottom: 20px;
+  margin-bottom: 20px !important;
 }
 
 /* color elections to find it quicker */
 .megaMenuItem a[href*="Election"] {
-  color: #bbbb14;
+  color: #bbbb14 !important;
 }
 
 
 /* MAIN PAGE STUFF */
 /* Remove "welcome to linn county" section */
 #bannerContentTS {
-  padding-top: 0px;
-  padding-bottom: 0px;
-  display: none;
+  padding-top: 0px !important;
+  padding-bottom: 0px !important;
+  display: none !important;
 }
 
 /* Remove "Stay informed" */
@@ -80,19 +80,19 @@ GM_addStyle ( `
 
 /* Padding for titles */
 [id*="homeContainer"] {
-  padding: 0;
+  padding: 0 !important;
 }
 
 
 /* POPULAR SERVICES SECTION */
 /* Padding  */
 #bannerSizing2TS {
-  padding: 0;
+  padding: 0 !important;
 }
 
 /* Link height*/
 .widgetQuickLinksLink {
-  min-height: 50px;
+  min-height: 50px !important;
 }
 
 
