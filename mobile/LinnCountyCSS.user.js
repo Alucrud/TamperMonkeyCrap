@@ -5,198 +5,120 @@
 // @include     https://www.linncountyiowa.gov/*
 // @grant       GM_addStyle
 // @run-at      document-start
-// @version     0.1
+// @version     2
 // ==/UserScript==
 
 GM_addStyle ( `
-div.alertToolbar.cpToolbar {
+/* Remove covid alert */
+.alertToolbar {
   display: none;
 }
 
-.widgetSearchBox {
-  border-radius: 10px;
-}
-
-.searchTS {
-  border-radius: 10px;
-}
-
-#structuralContainer6 {
+/* Remove language select */
+#google-translate-container {
   display: none;
 }
 
-.stickyStructuralContainer {
-  top: 35px;
-  height: 80px;
+/* MAIN PAGE STUFF */
+/* HEADER STUFF */
+/* Resize Linn County Logo */
+#bannerLogoTS img {
+  max-height:50px;
+  width: auto;
+  height: auto;
 }
 
-#contentContainer5b {
-  display: none;
+/* header padding */
+#bannerLogoTS {
+  padding-top: 0;
+  padding-bottom: 0;
 }
 
-#structuralContainer5 {
+/* Nav menu padding */
+.navMainItem {
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+/* Search button padding */
+#searchToggleTS {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+
+/* TOP MENU STUFF */
+/* delete this */
+#mainNavMegaMenu31 {
+  display:block;
+}
+
+/* padding */
+.megaMenuItem {
+  padding: 0;
+}
+
+/* padding after lists */
+.megaMenuItem > ol {
+  margin-bottom: 20px;
+}
+
+/* color elections to find it quicker */
+.megaMenuItem a[href*="Election"] {
+  color: #bbbb14;
+}
+
+
+/* MAIN PAGE STUFF */
+/* Remove "welcome to linn county" section */
+#bannerContentTS {
   padding-top: 0px;
-  margin-top: 80px;
-}
-
-#structuralContainer5>div.inner {
-  padding: 10px 0 10px 0;
-}
-
-#structuralContainer16 {
-  padding-top: 5px;
-}
-
-img.media {
-  width: 175px
-}
-
-#contentContainer16a {
-  height: 50px;
-}
-
-.goog-te-combo {
-  display:none;
-}
-
-.siteSidebar {
-  border-top-left-radius: 10px;
-  border-bottom-left-radius: 10px;
-}
-
-#structuralContainer10 {
-  border-top-right-radius: 10px;
-  border-bottom-right-radius: 10px;
-}
-
-.siteSidebar .navMainItem {
-  padding-top: 10px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid #9cf;
-  font-weight: 300;
-  font-size: .95em;
-}
-
-.siteSidebar .navMenuItem {
-  padding-top: 10px;
-  padding-bottom: 10px;
-  font-weight: 200;
-  font-size: 1em;
-}
-
-.siteHeader .navMainItem {
-  text-transform: none;
-}
-
-h1, h2, h3, h4, h5 {
-  text-transform: none;
-  color: #0076be;
-}
-
-h4 a {
-  text-transform: none;
-}
-
-.breadCrumbs a {
-  color: #0076be;
-}
-
-#featureColumn .h-card::after {
-    content: "";
-    display: block;
-    margin: 0 auto;
-    width: 85%;
-    padding-top: 20px;
-    border-bottom: 1px solid #bbb;
-}
-
-#page .row.outer::after {
-    content: "";
-    display: block;
-    margin: 0 auto;
-    width: 85%;
-    padding-top: 20px;
-    border-bottom: 1px solid #bbb;
-}
-
-.secondaryContent .widgetViewAll {
-  padding: 6px;
-  text-transform: none;
-  font-size: 1em;
-  color: white;
-  background-color: #0076be;
-  border-radius: 10px;
-  font-weight: 300;
-}
-
-.secondaryContent {
-  background-color: #e5e5e5;
-  border-bottom-left-radius: 10px;
-  border-top-right-radius: 10px;
-}
-
-iframe[src*="facebook"] {
-  display:none;
-}
-
-a {
-  text-decoration: none;
-}
-
-#moduleContent a {
-  color: #0076be;
-}
-
-.secondaryContent a {
-  color: #0076be;
-}
-
-.tabName {
-  color: black;
-}
-
-.cpTabs>li:first-of-type>a {
-  border-top-left-radius: 10px;
-  border-bottom-left-radius: 10px;
-}
-
-.cpTabs>li:last-of-type>a {
-  border-top-right-radius: 10px;
-  border-bottom-right-radius: 10px;
-}
-
-.contentTools {
+  padding-bottom: 0px;
   display: none;
 }
 
-.megaMenu {
-  border-bottom-right-radius: 10px;
-  border-bottom-left-radius: 10px;
-  border-color: #000000;
-  top: 90px;
+/* Remove "Stay informed" */
+#homeContainer1 {
+  display:none;
 }
 
-.widgetTitle:hover {
-  text-decoration: none;
+
+/* Padding for titles */
+[id*="homeContainer"] {
+  padding: 0;
 }
 
-.megaMenu .col {
-  border-right: 1px solid #555;
+
+/* POPULAR SERVICES SECTION */
+/* Padding  */
+#bannerSizing2TS {
+  padding: 0;
 }
 
-.megaMenuItem .widgetTitle a:active {
-  color: #dd0;
+/* Link height*/
+.widgetQuickLinksLink {
+  min-height: 50px;
 }
 
-.megaMenuItem a {
-  font-weight: 300;
+
+/* FOOTER STUFF */
+/* Remove massive logo footer  */
+#footerTS {
+  display: none;
 }
 
-img {
-  border-radius: 10px;
+/* 2nd footer padding */
+#footer2TS {
+  padding: 0;
 }
 
-.miniCalendar a {
-  border-radius: 10px;
+
+
+
+
+/* NON-MAIN PAGE STUFF */
+/* Remove social media crap from sidebar */
+#sidebarContainer1TS {
+  display: none;
 }
 ` );
