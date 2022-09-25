@@ -4,7 +4,7 @@
 // @version      0.21
 // @description  1337x.to
 // @author       Alucrud
-// @include      https://www.1337x.to/*
+// @include      https://www.1337x.to/home/*
 // @require      https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js
 // @grant        none
 // ==/UserScript==
