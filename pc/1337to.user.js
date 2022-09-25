@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         1337x.to
 // @namespace    https://github.com/Alucrud/TamperMonkeyCrap/
-// @version      0.21
+// @version      0.22
 // @description  1337x.to
 // @author       Alucrud
 // @include      https://www.1337x.to/home/*
