@@ -2,8 +2,8 @@
 // @name        Confluence
 // @namespace   https://github.com/Alucrud/TamperMonkeyCrap/
 // @description Adds a "Clear Checkboxes" button to Confluence
-// @match       *://linnco.atlassian.net/wiki/spaces/ES/pages/*
-// @version     1
+// @match       *://*.atlassian.net/wiki/*
+// @version     1.01
 // @updateURL   https://github.com/Alucrud/TamperMonkeyCrap/raw/main/work/Confluence.user.js
 // @grant       GM_addStyle
 // ==/UserScript==
