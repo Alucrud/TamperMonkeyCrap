@@ -4,7 +4,7 @@
 // @description Adds a "Clear Checkboxes" button to Confluence
 // @match       *://*.atlassian.net/wiki/*
 // @version     1.01
-// @updateURL   https://github.com/Alucrud/TamperMonkeyCrap/raw/main/work/Confluence.user.js
+// @updateURL   https://github.com/Alucrud/TamperMonkeyCrap/raw/main/Work/Confluence.user.js
 // @grant       GM_addStyle
 // ==/UserScript==
 
