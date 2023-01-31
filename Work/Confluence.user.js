@@ -16,6 +16,9 @@ zNode.innerHTML = '<button id="myButton" type="button">'
 zNode.setAttribute ('id', 'myContainer');
 
 //Run the function when the page is loaded
+document.addEventListener ("load", addButton);
+
+//...also when clicking because it doesn't trigger when you navigate to other pages otherwise...
 document.addEventListener ("click", addButton);
 
 //Add elements and activate button
