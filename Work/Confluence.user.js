@@ -13,8 +13,9 @@
 
 //Variables for added elements
 var zNode = document.createElement ('div');
-zNode.innerHTML = '<button id="myButton" type="button">'
-                + 'Uncheck All Boxes</button>'
+zNode.innerHTML = '<p>Custom Functions: '
+                + '<button id="myButton" type="button">'
+                + 'Uncheck All Boxes</button></p>'
                 ;
 zNode.setAttribute ('id', 'myContainer');
 
