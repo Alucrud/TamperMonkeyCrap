@@ -2,11 +2,11 @@
 // @name        REMEMBER ME
 // @namespace   https://github.com/Alucrud/TamperMonkeyCrap/
 // @description Auto-check "remember me"
-// @include     https://*
-// @include     http://*
+// @match       https://*
+// @match       http://*
 // @run-at      document-idle
 // @grant       none
-// @version     0.2
+// @version     0.21
 // @require     https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js
 // ==/UserScript==
 
