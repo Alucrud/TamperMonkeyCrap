@@ -16,7 +16,7 @@ zNode.innerHTML = '<button id="myButton" type="button">'
 zNode.setAttribute ('id', 'myContainer');
 
 //Run the function when the page is loaded
-window.addEventListener ("load", addButton);
+document.addEventListener ("click", addButton);
 
 //Add elements and activate button
 function addButton() {
