@@ -6,7 +6,7 @@
 // @grant       GM_addStyle
 // @run-at      document-start
 // @version     2
-// @updateURL   https://github.com/Alucrud/TamperMonkeyCrap/raw/main/work/Linn.user.js
+// @updateURL   https://github.com/Alucrud/TamperMonkeyCrap/raw/main/Work/Linn.user.js
 // ==/UserScript==
 
 GM_addStyle ( `
