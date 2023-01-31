@@ -3,10 +3,13 @@
 // @namespace   https://github.com/Alucrud/TamperMonkeyCrap/
 // @description Adds a "Clear Checkboxes" button to Confluence
 // @match       *://*.atlassian.net/wiki/*
-// @version     1.01
+// @version     2
 // @updateURL   https://github.com/Alucrud/TamperMonkeyCrap/raw/main/Work/Confluence.user.js
+// @icon         https://www.google.com/s2/favicons?sz=64&domain=atlassian.net
+// @require  https://gist.github.com/raw/2625891/waitForKeyElements.js
 // @grant       GM_addStyle
 // ==/UserScript==
+
 
 //Variables for added elements
 var zNode = document.createElement ('div');
@@ -15,22 +18,23 @@ zNode.innerHTML = '<button id="myButton" type="button">'
                 ;
 zNode.setAttribute ('id', 'myContainer');
 
-//Run the function when the page is loaded
-window.addEventListener ("load", addButton);
-
-//...also when clicking because it doesn't trigger when you navigate to other pages otherwise...
-document.addEventListener ("click", addButton);
+//Run the function when the edit button appears
+waitForKeyElements ("#editPageLink", addButton);
 
 //Add elements and activate button
 function addButton() {
-    //Add element
-    document.getElementById("AkTopNav").appendChild(zNode);
+    //If the element doesn't already exist...
+    var myEle = document.getElementById("#myContainer");
+    if(!myEle){
+        //Add element
+        document.getElementById("AkTopNav").appendChild(zNode);
 
-    //Activate button.
-    document.getElementById ("myButton").addEventListener ("click", ButtonClickAction, false);
+        //Activate button.
+        document.getElementById ("myButton").addEventListener ("click", ButtonClickAction, false);
+    }
 }
 
-//Uncheck all boxes, when button is clicked
+//When button is clicked - uncheck all boxes
 function ButtonClickAction (zEvent) {
     Object.values(document.querySelectorAll('input[type=checkbox]')).forEach(function(item) {
         if (item.checked) {
