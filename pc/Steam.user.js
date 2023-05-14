@@ -5,7 +5,6 @@
 // @description  Clean the front page of steam
 // @author       Alucrud
 // @match        https://store.steampowered.com/
-// @match        https://store.steampowered.com/?*
 // @icon         https://www.steam.com/favicon.ico
 // @grant        GM_addStyle
 // @updateURL    https://github.com/Alucrud/TamperMonkeyCrap/raw/main/pc/Steam.user.js
@@ -43,7 +42,7 @@ div:has(> .content_hub_carousel_ctn) {
 
 /* Hide "Recently updated" */
 .recently_updated_block {
-    display: none;
+    display: none !important;
 }
 
 /* Remove unnecessary padding */
