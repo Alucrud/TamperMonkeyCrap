@@ -1,11 +1,11 @@
 // ==UserScript==
 // @name         Steam Cleaner
 // @namespace    http://tampermonkey.net/
-// @version      1.0
+// @version      1.1
 // @description  Clean the front page of steam
 // @author       Alucrud
 // @match        https://store.steampowered.com/
-// @icon         https://www.steam.com/favicon.ico
+// @icon         https://store.steampowered.com/favicon.ico
 // @grant        GM_addStyle
 // @updateURL    https://github.com/Alucrud/TamperMonkeyCrap/raw/main/pc/Steam.user.js
 // ==/UserScript==
