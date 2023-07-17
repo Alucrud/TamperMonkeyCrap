@@ -3,7 +3,7 @@
 // @namespace   Violentmonkey Scripts
 // @match       https://tildes.net/
 // @grant       GM_addStyle
-// @version     1.0
+// @version     1.1
 // @author      -
 // @description 7/17/2023, 1:07:25 PM
 // @updateURL   https://github.com/Alucrud/TamperMonkeyCrap/raw/main/mobile/Tildes%20-%20Remove%20Youtube%20Links.user.js
