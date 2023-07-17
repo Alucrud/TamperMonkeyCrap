@@ -4,7 +4,7 @@
 // @match       *://beehaw.org/*
 // @grant       GM_addStyle
 // @version     1.1
-// @author      -
+// @author      Alucrud
 // @description Hides any submitted links that point to youtube.
 // @updateURL   https://github.com/Alucrud/TamperMonkeyCrap/raw/main/mobile/Beehaw%20-%20Remove%20Youtube%20Links.user.js
 // @icon        https://beehaw.org/favicon.ico
