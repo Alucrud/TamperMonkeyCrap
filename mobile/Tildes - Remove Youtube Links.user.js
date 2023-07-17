@@ -21,5 +21,4 @@ article:has([href^="https://youtu.be/"]) {
   display: none;
 }
 
-
 ` );
