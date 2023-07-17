@@ -1,9 +1,9 @@
 // ==UserScript==
 // @name        Tildes - Remove Youtube Links
 // @namespace   Violentmonkey Scripts
-// @match       https://tildes.net/
+// @match       *://tildes.net/*
 // @grant       GM_addStyle
-// @version     1.1
+// @version     1.2
 // @author      -
 // @description Hides any submitted links that point to youtube.
 // @updateURL   https://github.com/Alucrud/TamperMonkeyCrap/raw/main/mobile/Tildes%20-%20Remove%20Youtube%20Links.user.js
