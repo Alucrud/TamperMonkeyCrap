@@ -6,7 +6,7 @@
 // @version     1.0
 // @author      -
 // @description 7/17/2023, 1:07:25 PM
-// @updateURL   https://github.com/Alucrud/TamperMonkeyCrap/raw/main/pc/
+// @updateURL   https://github.com/Alucrud/TamperMonkeyCrap/raw/main/mobile/Tildes%20-%20Remove%20Youtube%20Links.user.js
 // @icon        https://tildes.net/favicon.ico
 // ==/UserScript==
 
