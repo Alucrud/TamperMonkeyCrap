@@ -1,9 +1,9 @@
 // ==UserScript==
 // @name        Beehaw - Remove Youtube Links
 // @namespace   Violentmonkey Scripts
-// @match       https://beehaw.org/
+// @match       *://beehaw.org/*
 // @grant       GM_addStyle
-// @version     1.0
+// @version     1.1
 // @author      -
 // @description Hides any submitted links that point to youtube.
 // @updateURL   https://github.com/Alucrud/TamperMonkeyCrap/raw/main/mobile/Beehaw%20-%20Remove%20Youtube%20Links.user.js
