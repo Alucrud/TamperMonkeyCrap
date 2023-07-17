@@ -14,10 +14,10 @@
 GM_addStyle ( `
 
 /* Block any article that contains a topic with youtube links  */
-article:has([href^="https://www.youtube.com/watch"]) {
+li:has([href^="https://www.youtube.com/watch"]) {
   display: none;
 }
-article:has([href^="https://youtu.be/"]) {
+li:has([href^="https://youtu.be/"]) {
   display: none;
 }
 
