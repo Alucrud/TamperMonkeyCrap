@@ -29,5 +29,4 @@ GM_addStyle ( `
   display: none;
 }
 
-
 ` );
