@@ -2,8 +2,9 @@
 // @name        Indeed Streamliner
 // @namespace   https://github.com/Alucrud/TamperMonkeyCrap/
 // @match       https://www.indeed.com/jobs*
+// @match       https://www.indeed.com/m/jobs*
 // @grant       GM_addStyle
-// @version     0.1
+// @version     1.01
 // @author      Alucrud
 // @icon        https://www.indeed.com/images/favicon.ico
 // @description 3/27/2024, 4:39:52 AM
@@ -118,7 +119,7 @@ async function load () { // We need to wrap the loop into an async function for 
     });
 
     //De-prioritize visited postings
-    $("span:contains('Visited')").closest(".cardOutline").css('opacity', '0.8');
+    $("span:contains('Visited')").closest(".cardOutline").css('opacity', '0.5');
 
       //loop stuff
       if(i<6) //runs 5 times quick, then slows down
