@@ -4,11 +4,12 @@
 // @match       https://www.indeed.com/jobs*
 // @match       https://www.indeed.com/m/jobs*
 // @grant       GM_addStyle
-// @version     1.01
+// @version     1.02
 // @author      Alucrud
 // @icon        https://www.indeed.com/images/favicon.ico
 // @description 3/27/2024, 4:39:52 AM
 // @require      https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js
+// @require     https://gist.github.com/raw/2625891/waitForKeyElements.js
 // @updateURL    https://github.com/Alucrud/TamperMonkeyCrap/raw/main/pc/Indeed.user.js
 // ==/UserScript==
 
@@ -81,56 +82,44 @@ var eList = `
 `;
 
 
-//// Returns a Promise that resolves after "ms" Milliseconds
-const timer = ms => new Promise(res => setTimeout(res, ms))
+waitForKeyElements (".jcs-JobTitle", filter)
 
-async function load () { // We need to wrap the loop into an async function for this to work
-  for (var i = 0; i < 50; i++) {
-    //Remove
-    $.each(removeList.split(/\r?\n/), function(){
-      var rep = this.trim();
-      if (rep.length > 0){
-        $("span:contains('" + rep + "')").closest("li").remove();
-      };
-    });
+function filter (jNode) {
+//Remove
+  $.each(removeList.split(/\r?\n/), function(){
+    var rep = this.trim();
+    if (rep.length > 0){
+      //PC
+      $("span:contains('" + rep + "')").closest("li").remove();
+      //Mobile
+      $("a:contains('" + rep + "')").closest("li").remove();
+    };
+  });
 
-    //Prioritize
-    $.each(pList.split(/\r?\n/), function(){
-      var rep = this.trim();
-      if (rep.length > 0){
-        $("span:contains('" + rep + "')").css('color', 'yellow');
-      };
-    });
+  //Prioritize
+  $.each(pList.split(/\r?\n/), function(){
+    var rep = this.trim();
+    if (rep.length > 0){
+      $("span:contains('" + rep + "')").css('color', 'yellow');
+    };
+  });
 
-    //De-prioritize
-    $.each(dpList.split(/\r?\n/), function(){
-      var rep = this.trim();
-      if (rep.length > 0){
-        $("span:contains('" + rep + "')").closest(".cardOutline").css('opacity', '0.5');
-      };
-    });
+  //De-prioritize
+  $.each(dpList.split(/\r?\n/), function(){
+    var rep = this.trim();
+    if (rep.length > 0){
+      $("span:contains('" + rep + "')").closest(".cardOutline").css('opacity', '0.5');
+    };
+  });
 
-    //Exclude
-    $.each(eList.split(/\r?\n/), function(){
-      var rep = this.trim();
-      if (rep.length > 0){
-        $("span:contains('" + rep + "')").closest(".cardOutline").css('opacity', '1');
-      };
-    });
+  //Exclude
+  $.each(eList.split(/\r?\n/), function(){
+    var rep = this.trim();
+    if (rep.length > 0){
+      $("span:contains('" + rep + "')").closest(".cardOutline").css('opacity', '1');
+    };
+  });
 
-    //De-prioritize visited postings
-    $("span:contains('Visited')").closest(".cardOutline").css('opacity', '0.5');
-
-      //loop stuff
-      if(i<6) //runs 5 times quick, then slows down
-      {
-          await timer(500); // then the created Promise can be awaited
-      }
-      else
-      {
-          await timer(3000); // then the created Promise can be awaited
-      }
-  }
+  //De-prioritize visited postings
+  $("span:contains('Visited')").closest(".cardOutline").css('opacity', '0.5');
 }
-
-load();
