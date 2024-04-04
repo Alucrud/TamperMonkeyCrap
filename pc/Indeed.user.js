@@ -8,9 +8,10 @@
 // @author      Alucrud
 // @icon        https://www.indeed.com/images/favicon.ico
 // @description 3/27/2024, 4:39:52 AM
-// @require      https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js
+// @require     https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js
 // @require     https://gist.github.com/raw/2625891/waitForKeyElements.js
-// @updateURL    https://github.com/Alucrud/TamperMonkeyCrap/raw/main/pc/Indeed.user.js
+// @updateURL   https://github.com/Alucrud/TamperMonkeyCrap/raw/main/pc/Indeed.user.js
+// @downloadURL https://github.com/Alucrud/TamperMonkeyCrap/raw/main/pc/Indeed.user.js
 // ==/UserScript==
 
 //// Replace contains with a case-insensitive version
