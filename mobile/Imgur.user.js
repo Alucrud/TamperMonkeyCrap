@@ -1,10 +1,15 @@
 // ==UserScript==
 // @name Imgur
-// @version 0.0.2
-// @include *://*imgur*/*
-// @grant none
-// @require http://code.jquery.com/jquery-3.4.1.min.js
-// @require  https://gist.github.com/raw/2625891/waitForKeyElements.js
+// @namespace   https://github.com/Alucrud/TamperMonkeyCrap/
+// @author      Alucrud
+// @description Open links in new tabs and remove junk posts
+// @icon        https://imgur.com/favicon.ico
+// @version     0.0.2
+// @include     *://*imgur*/*
+// @grant       none
+// @require     http://code.jquery.com/jquery-3.4.1.min.js
+// @require     https://gist.github.com/raw/2625891/waitForKeyElements.js
+// @updateURL   https://github.com/Alucrud/TamperMonkeyCrap/raw/main/mobile/Imgur.user.js
 // @noframes
 // @run-at document-idle
 // ==/UserScript==
