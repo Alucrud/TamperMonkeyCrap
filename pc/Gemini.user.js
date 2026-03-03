@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Gemini - Select Pro - Ctrl+Enter to Send
 // @namespace    http://tampermonkey.net/
-// @version      1.1
+// @version      1.2
 // @description  Defaults to Pro on load/new chat, but allows manual switching. Enter will create a new line. Ctrl+Enter will send the message
 // @author       Alucrud
 // @icon         https://t3.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=http://gemini.google.com&size=16
@@ -114,7 +114,8 @@ document.addEventListener('keydown', function(e) {
     if (e.key === 'Enter') {
         if (!e.ctrlKey && !e.shiftKey) {
             // Regular Enter: Stop the site from sending, insert a new line instead
-            e.stopPropagation();
+            e.preventDefault(); // Stops the browser's default newline
+            e.stopPropagation(); // Stops the site from sending
             document.execCommand('insertText', false, '\n');
         } else if (e.ctrlKey) {
             // Ctrl + Enter: Hide the Ctrl modifier and trigger a standard Enter press
