@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Gemini - Select Pro - Ctrl+Enter to Send
 // @namespace    http://tampermonkey.net/
-// @version      1.23
+// @version      1.24
 // @description  Defaults to Pro on load/new chat, but allows manual switching. Enter will create a new line. Ctrl+Enter will send the message
 // @author       Alucrud
 // @icon         https://t3.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=http://gemini.google.com&size=16
@@ -14,7 +14,6 @@
     'use strict';
 
     const TRIGGER_SELECTOR = '[aria-label="Open mode picker"]';
-    const NEW_CHAT_SELECTOR = '[aria-label="New chat"], [data-test-id="new-chat-button"]';
     const CHATBOX_SELECTOR = '.ql-editor';
 
     const MODE_SELECTORS = {
@@ -26,6 +25,7 @@
     let hasSwitched = false;
     let lastUrl = window.location.href;
     let isSwitching = false;
+    let switchCooldown;
 
     const observer = new MutationObserver(() => {
         if (window.location.href !== lastUrl) {
@@ -41,6 +41,10 @@
         if (e.ctrlKey && ['1', '2', '3'].includes(e.key)) {
             e.preventDefault();
             e.stopPropagation();
+
+            // The Lock: Prevent overlapping executions
+            if (isSwitching) return;
+
             const pickerBtn = document.querySelector(TRIGGER_SELECTOR);
             if (pickerBtn) await performSwitch(pickerBtn, MODE_SELECTORS[e.key]);
         }
@@ -61,13 +65,17 @@
 
     async function performSwitch(pickerBtn, specificSelector) {
         isSwitching = true;
-        pickerBtn.click();
+        clearTimeout(switchCooldown);
 
-        // Wait a moment for the overlay menu to inject into the DOM
+        // Only click if the menu isn't already open
+        if (pickerBtn.getAttribute('aria-expanded') !== 'true') {
+            pickerBtn.click();
+        }
+
         await new Promise(r => setTimeout(r, 150));
 
         try {
-            const targetButton = await waitForElement(specificSelector);
+            const targetButton = await waitForElement(specificSelector, 800);
             if (targetButton) {
                 targetButton.click();
                 hasSwitched = true;
@@ -76,17 +84,20 @@
                     const chatbox = document.querySelector(CHATBOX_SELECTOR);
                     if (chatbox) chatbox.focus();
                 }, 200);
-            } else {
-                document.body.click();
+            } else if (pickerBtn.getAttribute('aria-expanded') === 'true') {
+                document.body.click(); // Cleanup if failed
             }
         } catch (e) {
-            document.body.click();
+            if (pickerBtn.getAttribute('aria-expanded') === 'true') {
+                document.body.click();
+            }
         }
 
-        setTimeout(() => { isSwitching = false; }, 1000);
+        // Unlock the script faster
+        switchCooldown = setTimeout(() => { isSwitching = false; }, 250);
     }
 
-    function waitForElement(selector, timeout = 1500) {
+    function waitForElement(selector, timeout = 1000) {
         return new Promise((resolve, reject) => {
             const el = document.querySelector(selector);
             if (el) return resolve(el);
