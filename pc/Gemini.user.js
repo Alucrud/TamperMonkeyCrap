@@ -2,7 +2,7 @@
 // @name         Gemini - Select Pro - Ctrl+Enter to Send
 // @namespace    http://tampermonkey.net/
 // @version      1.24
-// @description  Defaults to Pro on load/new chat, but allows manual switching. Enter will create a new line. Ctrl+Enter will send the message
+// @description  Defaults to Pro on load/new chat, but allows manual switching. Enter will create a new line. Ctrl+Enter will send the message. Ctrl 1,2,3 will switch between modes.
 // @author       Alucrud
 // @icon         https://t3.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=http://gemini.google.com&size=16
 // @updateURL    https://github.com/Alucrud/TamperMonkeyCrap/raw/main/pc/Gemini.user.js
