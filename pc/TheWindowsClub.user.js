@@ -5,6 +5,8 @@
 // @grant       none
 // @version     1
 // @description Removes sidebars, centers content, and limits max-width for readability.
+// @icon        https://www.thewindowsclub.com/favicon.ico
+// @updateURL   https://github.com/Alucrud/TamperMonkeyCrap/raw/main/pc/TheWindowsClub.user.js
 // @run-at      document-start
 // ==/UserScript==
 
