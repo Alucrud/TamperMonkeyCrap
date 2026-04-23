@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Gemini - Select Pro - Ctrl+Enter to Send
 // @namespace    http://tampermonkey.net/
-// @version      1.24
-// @description  Defaults to Pro on load/new chat, but allows manual switching. Enter will create a new line. Ctrl+Enter will send the message. Ctrl 1,2,3 will switch between modes.
+// @version      1.25
+// @description  Defaults to Pro on load/new chat, but allows manual switching. Enter will create a new line. Ctrl+Enter will send the message
 // @author       Alucrud
 // @icon         https://t3.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=http://gemini.google.com&size=16
 // @updateURL    https://github.com/Alucrud/TamperMonkeyCrap/raw/main/pc/Gemini.user.js
@@ -54,13 +54,18 @@
         const pickerBtn = document.querySelector(TRIGGER_SELECTOR);
         if (!pickerBtn || hasSwitched) return;
 
-        const buttonText = pickerBtn.innerText || "";
-        if (buttonText.includes("Pro") || buttonText.includes("Advanced")) {
-            hasSwitched = true;
-            return;
-        }
+        const buttonText = (pickerBtn.innerText || "").toLowerCase();
 
-        await performSwitch(pickerBtn, MODE_SELECTORS['3']);
+        // If the button text is empty (still loading), skip this cycle
+        if (!buttonText.trim()) return;
+
+        // ONLY auto-switch if we are currently on Flash or Fast
+        if (buttonText.includes("flash") || buttonText.includes("fast")) {
+            await performSwitch(pickerBtn, MODE_SELECTORS['3']);
+        } else {
+            // If it's already Pro, Advanced, or Thinking, mark as "switched" so we stop checking
+            hasSwitched = true;
+        }
     }
 
     async function performSwitch(pickerBtn, specificSelector) {
