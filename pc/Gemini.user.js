@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name         Gemini - Select Pro - Ctrl+Enter to Send
+// @name         Gemini - Auto 3.5 Flash - Ctrl 1,2,3,4 to Toggle Models - Ctrl+Enter to Send
 // @namespace    http://tampermonkey.net/
-// @version      1.25
-// @description  Defaults to Pro on load/new chat, but allows manual switching. Enter will create a new line. Ctrl+Enter will send the message
+// @version      2
+// @description  Defaults to 3.5 Flash on load/new chat, but allows manual switching. Enter will create a new line. Ctrl+Enter will send the message
 // @author       Alucrud
 // @icon         https://t3.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=http://gemini.google.com&size=16
 // @updateURL    https://github.com/Alucrud/TamperMonkeyCrap/raw/main/pc/Gemini.user.js
@@ -13,129 +13,112 @@
 (function() {
     'use strict';
 
-    const TRIGGER_SELECTOR = '[aria-label="Open mode picker"]';
-    const CHATBOX_SELECTOR = '.ql-editor';
+    // Hotkey listener configuration
+    document.addEventListener('keydown', function(e) {
+        if (e.ctrlKey) {
+            var key = e.key;
+            if (['1', '2', '3', '4'].includes(key)) {
+                e.preventDefault();
+                e.stopPropagation();
 
-    const MODE_SELECTORS = {
-        '1': 'button[data-test-id="bard-mode-option-fast"]',
-        '2': 'button[data-test-id="bard-mode-option-thinking"]',
-        '3': 'button[data-test-id="bard-mode-option-pro"]'
-    };
-
-    let hasSwitched = false;
-    let lastUrl = window.location.href;
-    let isSwitching = false;
-    let switchCooldown;
-
-    const observer = new MutationObserver(() => {
-        if (window.location.href !== lastUrl) {
-            lastUrl = window.location.href;
-            hasSwitched = false;
-        }
-        if (!isSwitching) checkStateAndSwitch();
-    });
-
-    observer.observe(document.body, { childList: true, subtree: true });
-
-    document.addEventListener('keydown', async (e) => {
-        if (e.ctrlKey && ['1', '2', '3'].includes(e.key)) {
-            e.preventDefault();
-            e.stopPropagation();
-
-            // The Lock: Prevent overlapping executions
-            if (isSwitching) return;
-
-            const pickerBtn = document.querySelector(TRIGGER_SELECTOR);
-            if (pickerBtn) await performSwitch(pickerBtn, MODE_SELECTORS[e.key]);
+                if (key === '1') executeSelection('lite', false);
+                else if (key === '2') executeSelection('3.5 flash', false);
+                else if (key === '3') executeSelection('pro', false);
+                else if (key === '4') executeSelection('extended thinking', true);
+            }
         }
     }, true);
 
-    async function checkStateAndSwitch() {
-        const pickerBtn = document.querySelector(TRIGGER_SELECTOR);
-        if (!pickerBtn || hasSwitched) return;
+    async function executeSelection(targetText, isToggleAction) {
+        var pickerBtn = document.querySelector('button[data-test-id="bard-mode-menu-button"]');
+        if (!pickerBtn) return;
 
-        const buttonText = (pickerBtn.innerText || "").toLowerCase();
-
-        // If the button text is empty (still loading), skip this cycle
-        if (!buttonText.trim()) return;
-
-        // ONLY auto-switch if we are currently on Flash or Fast
-        if (buttonText.includes("flash") || buttonText.includes("fast")) {
-            await performSwitch(pickerBtn, MODE_SELECTORS['3']);
-        } else {
-            // If it's already Pro, Advanced, or Thinking, mark as "switched" so we stop checking
-            hasSwitched = true;
-        }
-    }
-
-    async function performSwitch(pickerBtn, specificSelector) {
-        isSwitching = true;
-        clearTimeout(switchCooldown);
-
-        // Only click if the menu isn't already open
+        // Open the menu panel if closed
         if (pickerBtn.getAttribute('aria-expanded') !== 'true') {
             pickerBtn.click();
         }
 
-        await new Promise(r => setTimeout(r, 150));
+        // Precision wait: dynamically loops until the element container exists (Max 1500ms timeout)
+        var menuContainer = await waitForElement('gem-menu[role="menu"], [data-test-id="gem-mode-menu"]', 1500);
+        if (!menuContainer) return;
 
-        try {
-            const targetButton = await waitForElement(specificSelector, 800);
-            if (targetButton) {
-                targetButton.click();
-                hasSwitched = true;
-
-                setTimeout(() => {
-                    const chatbox = document.querySelector(CHATBOX_SELECTOR);
-                    if (chatbox) chatbox.focus();
-                }, 200);
-            } else if (pickerBtn.getAttribute('aria-expanded') === 'true') {
-                document.body.click(); // Cleanup if failed
-            }
-        } catch (e) {
-            if (pickerBtn.getAttribute('aria-expanded') === 'true') {
-                document.body.click();
-            }
+        // Search for the specific item strictly confined to the interior of the menu panel
+        var targetItem = findElementByTextWithin(menuContainer, 'gem-menu-item, [role="menuitem"]', targetText);
+        if (targetItem) {
+            targetItem.click();
         }
 
-        // Unlock the script faster
-        switchCooldown = setTimeout(() => { isSwitching = false; }, 250);
+        // Brief programmatic cushion delay to let Angular register clicks before dismissal
+        await sleep(150);
+
+        // Safely dismiss menu structure if it remains present in active view state
+        if (pickerBtn.getAttribute('aria-expanded') === 'true') {
+            document.body.click();
+        }
+
+        // Return focus state control to primary chat element field
+        setTimeout(function() {
+            var chatbox = document.querySelector('.ql-editor, rich-textarea, textarea');
+            if (chatbox) chatbox.focus();
+        }, 100);
     }
 
-    function waitForElement(selector, timeout = 1000) {
-        return new Promise((resolve, reject) => {
-            const el = document.querySelector(selector);
-            if (el) return resolve(el);
-            const obs = new MutationObserver(() => {
-                const target = document.querySelector(selector);
-                if (target) { obs.disconnect(); resolve(target); }
-            });
-            obs.observe(document.body, { childList: true, subtree: true });
-            setTimeout(() => { obs.disconnect(); reject(null); }, timeout);
+    // Dynamic polling engine: replaces standard blind sleep delays
+    function waitForElement(selector, timeoutMs) {
+        return new Promise(function(resolve) {
+            var startTime = Date.now();
+            var checkInterval = setInterval(function() {
+                var element = document.querySelector(selector);
+                if (element) {
+                    clearInterval(checkInterval);
+                    resolve(element);
+                } else if ((Date.now() - startTime) > timeoutMs) {
+                    clearInterval(checkInterval);
+                    resolve(null);
+                }
+            }, 30); // Check every 30ms for maximum speed/responsiveness
         });
     }
-})();
 
-// --- Original Enter Key Logic ---
-document.addEventListener('keydown', function(e) {
-    if (!e.isTrusted) return;
-    if (e.target.tagName !== 'TEXTAREA' && !e.target.isContentEditable) return;
-
-    if (e.key === 'Enter') {
-        if (!e.ctrlKey && !e.shiftKey) {
-            e.preventDefault();
-            e.stopPropagation();
-
-            e.target.dispatchEvent(new KeyboardEvent('keydown', {
-                key: 'Enter', code: 'Enter', keyCode: 13, which: 13,
-                bubbles: true, cancelable: true, ctrlKey: false, shiftKey: true
-            }));
-        } else if (e.ctrlKey) {
-            e.stopPropagation();
-            e.target.dispatchEvent(new KeyboardEvent('keydown', {
-                key: 'Enter', code: 'Enter', keyCode: 13, which: 13,
-                bubbles: true, cancelable: true, ctrlKey: false, shiftKey: false
-            }));
+    // Contextually-scoped element lookup engine
+    function findElementByTextWithin(contextElement, selector, textContent) {
+        var elements = contextElement.querySelectorAll(selector);
+        for (var i = 0; i < elements.length; i++) {
+            var currentElement = elements[i];
+            if (currentElement.innerText && currentElement.innerText.toLowerCase().indexOf(textContent.toLowerCase()) !== -1) {
+                return currentElement;
+            }
         }
+        return null;
     }
-}, true);
+
+    function sleep(ms) {
+        return new Promise(function(resolve) {
+            setTimeout(resolve, ms);
+        });
+    }
+
+    // --- Original Enter Key Logic ---
+    document.addEventListener('keydown', function(e) {
+        if (!e.isTrusted) return;
+        if (e.target.tagName !== 'TEXTAREA' && !e.target.isContentEditable) return;
+
+        if (e.key === 'Enter') {
+            if (!e.ctrlKey && !e.shiftKey) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                e.target.dispatchEvent(new KeyboardEvent('keydown', {
+                    key: 'Enter', code: 'Enter', keyCode: 13, which: 13,
+                    bubbles: true, cancelable: true, ctrlKey: false, shiftKey: true
+                }));
+            } else if (e.ctrlKey) {
+                e.stopPropagation();
+                e.target.dispatchEvent(new KeyboardEvent('keydown', {
+                    key: 'Enter', code: 'Enter', keyCode: 13, which: 13,
+                    bubbles: true, cancelable: true, ctrlKey: false, shiftKey: false
+                }));
+            }
+        }
+    }, true);
+})();
