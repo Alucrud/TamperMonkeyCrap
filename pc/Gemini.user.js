@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Gemini - Auto 3.5 Flash - Ctrl 1,2,3,4 to Toggle Models - Ctrl+Enter to Send
 // @namespace    http://tampermonkey.net/
-// @version      2.1
+// @version      2.2
 // @description  Defaults to 3.5 Flash on load/new chat, but allows manual switching. Enter will create a new line. Ctrl+Enter will send the message
 // @author       Alucrud
 // @icon         https://t3.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=http://gemini.google.com&size=16
@@ -22,12 +22,35 @@
                 e.stopPropagation();
 
                 if (key === '1') executeSelection('lite', true);
-                else if (key === '2') executeSelection('3.5 flash', true);
+                else if (key === '2') executeSelection('flash', true);
                 else if (key === '3') executeSelection('pro', true);
                 else if (key === '4') executeSelection('extended thinking', false);
             }
         }
     }, true);
+
+    // Dynamic model identification engine
+    function matchesModel(text, targetKey) {
+        if (!text) return false;
+        var str = text.toLowerCase();
+        var target = targetKey.toLowerCase();
+
+        if (target === 'flash') {
+            // Must contain "flash", but MUST NOT contain "lite"
+            return str.indexOf('flash') !== -1 && str.indexOf('lite') === -1;
+        }
+        if (target === 'lite') {
+            return str.indexOf('lite') !== -1;
+        }
+        if (target === 'pro') {
+            return str.indexOf('pro') !== -1;
+        }
+        if (target === 'extended thinking' || target === 'extend') {
+            return str.indexOf('extend') !== -1 || str.indexOf('thinking') !== -1;
+        }
+
+        return str.indexOf(target) !== -1;
+    }
 
     async function executeSelection(targetText, defaultToExtended) {
         var pickerBtn = document.querySelector('button[data-test-id="bard-mode-menu-button"]');
@@ -41,8 +64,8 @@
         }
 
         var currentModelLabel = pickerBtn.querySelector('.picker-primary-text, [data-test-id="logo-pill-label-container"]');
-        var currentText = currentModelLabel ? currentModelLabel.innerText.toLowerCase() : '';
-        var isBaseModelActive = currentText.indexOf(targetText.toLowerCase()) !== -1;
+        var currentText = currentModelLabel ? currentModelLabel.innerText : '';
+        var isBaseModelActive = matchesModel(currentText, targetText);
 
         // Step 1: Switch the base model if it isn't already active
         if (!isBaseModelActive) {
@@ -54,21 +77,21 @@
             var menuContainer = await waitForElement('gem-menu[role="menu"], [data-test-id="gem-mode-menu"]', 1500);
             if (!menuContainer) return;
 
-            var targetItem = findElementByTextWithin(menuContainer, 'gem-menu-item, [role="menuitem"]', targetText);
+            var targetItem = findElementByModelMatch(menuContainer, 'gem-menu-item, [role="menuitem"]', targetText);
             if (targetItem) {
                 targetItem.click();
-                // Precise wait until the UI button updates to reflect the new base model selection
-                await waitForButtonTextToContain(pickerBtn, targetText, 2000);
+                // Wait until the UI button updates to reflect the new base model selection
+                await waitForButtonTextToMatch(pickerBtn, targetText, 2000);
             }
         }
 
         // Step 2: Verify and enforce the Extended Thinking requirement
         if (defaultToExtended) {
             currentModelLabel = pickerBtn.querySelector('.picker-primary-text, [data-test-id="logo-pill-label-container"]');
-            currentText = currentModelLabel ? currentModelLabel.innerText.toLowerCase() : '';
+            currentText = currentModelLabel ? currentModelLabel.innerText : '';
 
             // If the updated text does not contain "extend", open the menu and toggle it
-            if (currentText.indexOf('extend') === -1) {
+            if (!matchesModel(currentText, 'extend')) {
                 if (pickerBtn.getAttribute('aria-expanded') !== 'true') {
                     pickerBtn.click();
                     await sleep(100);
@@ -76,11 +99,11 @@
 
                 var extendedMenuContainer = await waitForElement('gem-menu[role="menu"], [data-test-id="gem-mode-menu"]', 1500);
                 if (extendedMenuContainer) {
-                    var extendedItem = findElementByTextWithin(extendedMenuContainer, 'gem-menu-item, [role="menuitem"], [role="menuitemcheckbox"]', 'extended thinking');
+                    var extendedItem = findElementByModelMatch(extendedMenuContainer, 'gem-menu-item, [role="menuitem"], [role="menuitemcheckbox"]', 'extended thinking');
                     if (extendedItem) {
                         extendedItem.click();
                         // Wait until the main button reflects that extended thinking is active
-                        await waitForButtonTextToContain(pickerBtn, 'extend', 2000);
+                        await waitForButtonTextToMatch(pickerBtn, 'extend', 2000);
                     }
                 }
             }
@@ -103,7 +126,7 @@
         var menuContainer = await waitForElement('gem-menu[role="menu"], [data-test-id="gem-mode-menu"]', 1500);
         if (!menuContainer) return;
 
-        var extendedItem = findElementByTextWithin(menuContainer, 'gem-menu-item, [role="menuitem"], [role="menuitemcheckbox"]', 'extended thinking');
+        var extendedItem = findElementByModelMatch(menuContainer, 'gem-menu-item, [role="menuitem"], [role="menuitemcheckbox"]', 'extended thinking');
         if (extendedItem) {
             extendedItem.click();
             await sleep(150);
@@ -142,14 +165,14 @@
         }, 50);
     }
 
-    // Polling engine to track string updates on the parent button label
-    function waitForButtonTextToContain(button, text, timeoutMs) {
+    // Polling engine to track model updates on the parent button label
+    function waitForButtonTextToMatch(button, targetKey, timeoutMs) {
         return new Promise(function(resolve) {
             var startTime = Date.now();
             var checkInterval = setInterval(function() {
                 var label = button.querySelector('.picker-primary-text, [data-test-id="logo-pill-label-container"]');
-                var currentText = label ? label.innerText.toLowerCase() : '';
-                if (currentText.indexOf(text.toLowerCase()) !== -1) {
+                var currentText = label ? label.innerText : '';
+                if (matchesModel(currentText, targetKey)) {
                     clearInterval(checkInterval);
                     resolve(true);
                 } else if ((Date.now() - startTime) > timeoutMs) {
@@ -190,12 +213,12 @@
         });
     }
 
-    // Contextually-scoped element lookup engine
-    function findElementByTextWithin(contextElement, selector, textContent) {
+    // Contextually-scoped element lookup engine using model matching rules
+    function findElementByModelMatch(contextElement, selector, targetKey) {
         var elements = contextElement.querySelectorAll(selector);
         for (var i = 0; i < elements.length; i++) {
             var currentElement = elements[i];
-            if (currentElement.innerText && currentElement.innerText.toLowerCase().indexOf(textContent.toLowerCase()) !== -1) {
+            if (currentElement.innerText && matchesModel(currentElement.innerText, targetKey)) {
                 return currentElement;
             }
         }
@@ -212,8 +235,10 @@
     async function initAutoModel() {
         var pickerBtn = await waitForElement('button[data-test-id="bard-mode-menu-button"]', 5000);
         if (pickerBtn) {
-            // Standard initialization leaves extended toggle to application defaults
-            await executeSelection('3.5 flash', false);
+            // Buffer wait to allow Angular listeners/text hydration to complete
+            await sleep(300);
+            // Select Flash AND enforce Extended Thinking (second parameter = true)
+            await executeSelection('flash', true);
         }
     }
 
