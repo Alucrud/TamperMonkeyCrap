@@ -1,9 +1,10 @@
 // ==UserScript==
 // @name         Hide Multiple Keywords on Reddit (Improved)
-// @namespace    
+// @namespace    https://github.com/Alucrud/TamperMonkeyCrap
 // @version      0.7
 // @description  Hides posts with specific keywords or subreddits on all Reddit pages, avoiding embedded content
-// @author       Your Name
+// @updateURL    https://github.com/Alucrud/TamperMonkeyCrap/raw/refs/heads/main/mobile/Reddit%20-%20Hide%20Posts.user.js
+// @author       Alucrud
 // @match        *://*.reddit.com/*
 // @grant        none
 // ==/UserScript==
