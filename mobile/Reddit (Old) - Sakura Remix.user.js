@@ -264,3 +264,5 @@
   }
 })();
 
+// Safeguard against Macaque injected CSS:
+/*
