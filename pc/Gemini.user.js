@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name         Gemini - Auto 3.5 Flash - Ctrl 1,2,3,4 to Toggle Models - Ctrl+Enter to Send
+// @name         Gemini - Auto Flash - Ctrl 1,2,3,4 to Toggle Models - Ctrl+Enter to Send
 // @namespace    http://tampermonkey.net/
 // @version      2.2
-// @description  Defaults to 3.5 Flash on load/new chat, but allows manual switching. Enter will create a new line. Ctrl+Enter will send the message
+// @description  Defaults to Flash on load/new chat, but allows manual switching. Enter will create a new line. Ctrl+Enter will send the message
 // @author       Alucrud
 // @icon         https://t3.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=http://gemini.google.com&size=16
 // @updateURL    https://github.com/Alucrud/TamperMonkeyCrap/raw/main/pc/Gemini.user.js
