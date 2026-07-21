@@ -262,7 +262,6 @@
           links[k].style.display = 'none';
       }
   }
-})();
-
+})(); //
 // Safeguard against Macaque injected CSS:
 /*
