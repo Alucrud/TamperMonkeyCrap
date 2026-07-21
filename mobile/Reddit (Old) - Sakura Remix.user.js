@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Sakura Reddit - Ultimate Edition v2.3
 // @namespace    https://github.com/Alucrud/TamperMonkeyCrap
-// @version      2.3
+// @version      2.3.1
 // @description  Clean anime-night app layout
 // @updateURL    https://github.com/Alucrud/TamperMonkeyCrap/raw/refs/heads/main/mobile/Reddit%20(Old)%20-%20Sakura%20Remix.user.js
 // @match        *://old.reddit.com/*
