@@ -262,4 +262,4 @@
           links[k].style.display = 'none';
       }
   }
-})(); //
+})();
