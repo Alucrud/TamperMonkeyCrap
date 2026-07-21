@@ -1,8 +1,9 @@
 // ==UserScript==
 // @name         Sakura Reddit - Ultimate Edition v2.3
-// @namespace    hoyops.sakura.merged
+// @namespace    https://github.com/Alucrud/TamperMonkeyCrap
 // @version      2.3
-// @description  Clean anime-night app layout. Fixes CSS specificity bug preventing subreddit muting.
+// @description  Clean anime-night app layout
+// @updateURL    https://github.com/Alucrud/TamperMonkeyCrap/raw/refs/heads/main/mobile/Reddit%20(Old)%20-%20Sakura%20Remix.user.js
 // @match        *://old.reddit.com/*
 // @run-at       document-end
 // @grant        none
