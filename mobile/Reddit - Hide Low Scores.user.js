@@ -1,8 +1,9 @@
 // ==UserScript==
 // @name         Hide Low Score Reddit Posts
-// @namespace    http://tampermonkey.net/
+// @namespace    https://github.com/Alucrud/TamperMonkeyCrap
 // @version      1.0
 // @description  Hides Reddit posts with a score less than 20.
+// @updateURL    https://github.com/Alucrud/TamperMonkeyCrap/raw/refs/heads/main/mobile/Reddit%20-%20Hide%20Low%20Scores.user.js
 // @match        *://*.reddit.com/*
 // @grant        none
 // ==/UserScript==
