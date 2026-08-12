@@ -1,17 +1,20 @@
 // ==UserScript==
 // @name         Gemini - Auto Flash - Ctrl 1,2,3,4 to Toggle Models - Ctrl+Enter to Send
 // @namespace    http://tampermonkey.net/
-// @version      2.2
+// @version      2.3
 // @description  Defaults to Flash on load/new chat, but allows manual switching. Enter will create a new line. Ctrl+Enter will send the message
 // @author       Alucrud
 // @icon         https://t3.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=http://gemini.google.com&size=16
 // @updateURL    https://github.com/Alucrud/TamperMonkeyCrap/raw/main/pc/Gemini.user.js
 // @match        https://gemini.google.com/*
 // @grant        none
+// @run-at       document-idle
 // ==/UserScript==
 
 (function() {
     'use strict';
+
+    let isAutoSelecting = false;
 
     // Hotkey listener configuration
     document.addEventListener('keydown', function(e) {
@@ -29,14 +32,12 @@
         }
     }, true);
 
-    // Dynamic model identification engine
     function matchesModel(text, targetKey) {
         if (!text) return false;
         var str = text.toLowerCase();
         var target = targetKey.toLowerCase();
 
         if (target === 'flash') {
-            // Must contain "flash", but MUST NOT contain "lite"
             return str.indexOf('flash') !== -1 && str.indexOf('lite') === -1;
         }
         if (target === 'lite') {
@@ -52,11 +53,21 @@
         return str.indexOf(target) !== -1;
     }
 
+    async function ensureMenuOpen(pickerBtn) {
+        if (pickerBtn.getAttribute('aria-expanded') !== 'true') {
+            pickerBtn.click();
+            var startTime = Date.now();
+            while (pickerBtn.getAttribute('aria-expanded') !== 'true' && (Date.now() - startTime) < 1500) {
+                await sleep(50);
+            }
+        }
+        return await waitForElement('gem-menu[role="menu"], [data-test-id="gem-mode-menu"]', 3000);
+    }
+
     async function executeSelection(targetText, defaultToExtended) {
         var pickerBtn = document.querySelector('button[data-test-id="bard-mode-menu-button"]');
         if (!pickerBtn) return;
 
-        // Isolated handling for Ctrl+4 manual toggle switch
         if (targetText === 'extended thinking') {
             await toggleExtendedThinkingDirectly(pickerBtn);
             focusChatbox();
@@ -67,49 +78,33 @@
         var currentText = currentModelLabel ? currentModelLabel.innerText : '';
         var isBaseModelActive = matchesModel(currentText, targetText);
 
-        // Step 1: Switch the base model if it isn't already active
         if (!isBaseModelActive) {
-            if (pickerBtn.getAttribute('aria-expanded') !== 'true') {
-                pickerBtn.click();
-                await sleep(50);
-            }
-
-            var menuContainer = await waitForElement('gem-menu[role="menu"], [data-test-id="gem-mode-menu"]', 1500);
+            var menuContainer = await ensureMenuOpen(pickerBtn);
             if (!menuContainer) return;
 
-            var targetItem = findElementByModelMatch(menuContainer, 'gem-menu-item, [role="menuitem"]', targetText);
+            var targetItem = await waitForMenuItem(menuContainer, 'gem-menu-item, [role="menuitem"]', targetText, 3000);
             if (targetItem) {
                 targetItem.click();
-                // Wait until the UI button updates to reflect the new base model selection
-                await waitForButtonTextToMatch(pickerBtn, targetText, 2000);
+                await waitForButtonTextToMatch(pickerBtn, targetText, 3000);
             }
         }
 
-        // Step 2: Verify and enforce the Extended Thinking requirement
         if (defaultToExtended) {
             currentModelLabel = pickerBtn.querySelector('.picker-primary-text, [data-test-id="logo-pill-label-container"]');
             currentText = currentModelLabel ? currentModelLabel.innerText : '';
 
-            // If the updated text does not contain "extend", open the menu and toggle it
             if (!matchesModel(currentText, 'extend')) {
-                if (pickerBtn.getAttribute('aria-expanded') !== 'true') {
-                    pickerBtn.click();
-                    await sleep(100);
-                }
-
-                var extendedMenuContainer = await waitForElement('gem-menu[role="menu"], [data-test-id="gem-mode-menu"]', 1500);
+                var extendedMenuContainer = await ensureMenuOpen(pickerBtn);
                 if (extendedMenuContainer) {
-                    var extendedItem = findElementByModelMatch(extendedMenuContainer, 'gem-menu-item, [role="menuitem"], [role="menuitemcheckbox"]', 'extended thinking');
+                    var extendedItem = await waitForMenuItem(extendedMenuContainer, 'gem-menu-item, [role="menuitem"], [role="menuitemcheckbox"]', 'extended thinking', 3000);
                     if (extendedItem) {
                         extendedItem.click();
-                        // Wait until the main button reflects that extended thinking is active
-                        await waitForButtonTextToMatch(pickerBtn, 'extend', 2000);
+                        await waitForButtonTextToMatch(pickerBtn, 'extend', 3000);
                     }
                 }
             }
         }
 
-        // Step 3: Clean up and dismiss menu layers
         if (pickerBtn.getAttribute('aria-expanded') === 'true') {
             document.body.click();
             await waitForMenuClose(pickerBtn, 1000);
@@ -119,14 +114,10 @@
     }
 
     async function toggleExtendedThinkingDirectly(pickerBtn) {
-        if (pickerBtn.getAttribute('aria-expanded') !== 'true') {
-            pickerBtn.click();
-            await sleep(100);
-        }
-        var menuContainer = await waitForElement('gem-menu[role="menu"], [data-test-id="gem-mode-menu"]', 1500);
+        var menuContainer = await ensureMenuOpen(pickerBtn);
         if (!menuContainer) return;
 
-        var extendedItem = findElementByModelMatch(menuContainer, 'gem-menu-item, [role="menuitem"], [role="menuitemcheckbox"]', 'extended thinking');
+        var extendedItem = await waitForMenuItem(menuContainer, 'gem-menu-item, [role="menuitem"], [role="menuitemcheckbox"]', 'extended thinking', 3000);
         if (extendedItem) {
             extendedItem.click();
             await sleep(150);
@@ -138,14 +129,12 @@
         }
     }
 
-    // High-precision focus loop to counteract Angular framework focus-stealing lifecycles
     function focusChatbox() {
-        var retries = 6;
+        var retries = 8;
         var checkInterval = setInterval(function() {
             var chatbox = document.querySelector('rich-textarea div.ql-editor.textarea[role="textbox"]');
             if (chatbox) {
                 chatbox.focus();
-
                 if (document.activeElement === chatbox) {
                     if (typeof window.getSelection !== 'undefined' && typeof document.createRange !== 'undefined') {
                         var range = document.createRange();
@@ -165,7 +154,6 @@
         }, 50);
     }
 
-    // Polling engine to track model updates on the parent button label
     function waitForButtonTextToMatch(button, targetKey, timeoutMs) {
         return new Promise(function(resolve) {
             var startTime = Date.now();
@@ -179,28 +167,53 @@
                     clearInterval(checkInterval);
                     resolve(false);
                 }
-            }, 30);
+            }, 50);
         });
     }
 
-    // Dynamic polling engine: replaces standard blind sleep delays
     function waitForElement(selector, timeoutMs) {
+        return new Promise(function(resolve) {
+            var el = document.querySelector(selector);
+            if (el) return resolve(el);
+
+            var startTime = Date.now();
+            var observer = new MutationObserver(function() {
+                var element = document.querySelector(selector);
+                if (element) {
+                    observer.disconnect();
+                    resolve(element);
+                } else if (timeoutMs && (Date.now() - startTime) > timeoutMs) {
+                    observer.disconnect();
+                    resolve(null);
+                }
+            });
+            observer.observe(document.body || document.documentElement, { childList: true, subtree: true });
+
+            if (timeoutMs) {
+                setTimeout(function() {
+                    observer.disconnect();
+                    resolve(document.querySelector(selector));
+                }, timeoutMs);
+            }
+        });
+    }
+
+    function waitForMenuItem(contextElement, selector, targetKey, timeoutMs) {
         return new Promise(function(resolve) {
             var startTime = Date.now();
             var checkInterval = setInterval(function() {
-                var element = document.querySelector(selector);
-                if (element) {
+                var item = findElementByModelMatch(contextElement, selector, targetKey);
+                if (item) {
                     clearInterval(checkInterval);
-                    resolve(element);
+                    resolve(item);
                 } else if ((Date.now() - startTime) > timeoutMs) {
                     clearInterval(checkInterval);
                     resolve(null);
                 }
-            }, 30);
+            }, 50);
         });
     }
 
-    // Block execution until the menu transition signals a full close state
     function waitForMenuClose(button, timeoutMs) {
         return new Promise(function(resolve) {
             var startTime = Date.now();
@@ -209,11 +222,10 @@
                     clearInterval(checkInterval);
                     resolve();
                 }
-            }, 20);
+            }, 30);
         });
     }
 
-    // Contextually-scoped element lookup engine using model matching rules
     function findElementByModelMatch(contextElement, selector, targetKey) {
         var elements = contextElement.querySelectorAll(selector);
         for (var i = 0; i < elements.length; i++) {
@@ -231,25 +243,64 @@
         });
     };
 
-    // --- Automated Initialization Engine ---
+    async function waitForTabToBeVisible() {
+        if (!document.hidden) return;
+        return new Promise(function(resolve) {
+            function onVisibilityChange() {
+                if (!document.hidden) {
+                    document.removeEventListener('visibilitychange', onVisibilityChange);
+                    resolve();
+                }
+            }
+            document.addEventListener('visibilitychange', onVisibilityChange);
+        });
+    }
+
     async function initAutoModel() {
-        var pickerBtn = await waitForElement('button[data-test-id="bard-mode-menu-button"]', 5000);
-        if (pickerBtn) {
-            // Buffer wait to allow Angular listeners/text hydration to complete
-            await sleep(300);
-            // Select Flash AND enforce Extended Thinking (second parameter = true)
-            await executeSelection('flash', true);
+        if (isAutoSelecting) return;
+        isAutoSelecting = true;
+
+        try {
+            // Pause execution if the tab was opened in the background until the user switches to it
+            await waitForTabToBeVisible();
+
+            // Wait up to 15s for cold start element rendering via MutationObserver
+            var pickerBtn = await waitForElement('button[data-test-id="bard-mode-menu-button"]', 15000);
+            if (!pickerBtn) return;
+
+            // Retry up to 3 times to account for Angular hydration delays on cold start
+            var attempts = 0;
+            while (attempts < 3) {
+                var label = pickerBtn.querySelector('.picker-primary-text, [data-test-id="logo-pill-label-container"]');
+                var currentText = label ? label.innerText : '';
+
+                if (matchesModel(currentText, 'flash') && matchesModel(currentText, 'extend')) {
+                    break;
+                }
+
+                await executeSelection('flash', true);
+                await sleep(300);
+
+                label = pickerBtn.querySelector('.picker-primary-text, [data-test-id="logo-pill-label-container"]');
+                currentText = label ? label.innerText : '';
+                if (matchesModel(currentText, 'flash') && matchesModel(currentText, 'extend')) {
+                    break;
+                }
+                attempts++;
+            }
+        } finally {
+            isAutoSelecting = false;
         }
     }
 
-    // Execute automation on core script load
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initAutoModel);
     } else {
         initAutoModel();
     }
 
-    // Single Page Application (SPA) tracking to trigger automation on fresh chats
+    window.addEventListener('load', initAutoModel);
+
     var lastUrl = location.href;
     var urlObserver = new MutationObserver(function() {
         if (location.href !== lastUrl) {
@@ -261,7 +312,7 @@
     });
     urlObserver.observe(document, { subtree: true, childList: true });
 
-    // --- Original Enter Key Logic ---
+    // Enter Key Logic
     document.addEventListener('keydown', function(e) {
         if (!e.isTrusted) return;
         if (e.target.tagName !== 'TEXTAREA' && !e.target.isContentEditable) return;
