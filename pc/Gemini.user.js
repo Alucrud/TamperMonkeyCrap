@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Gemini - Auto Flash - Ctrl 1,2,3,4 to Toggle Models - Ctrl+Enter to Send
 // @namespace    http://tampermonkey.net/
-// @version      2.3
-// @description  Defaults to Flash on load/new chat, but allows manual switching. Enter will create a new line. Ctrl+Enter will send the message
+// @version      3.1
+// @description  Defaults to Flash with Medium thinking on load/new chat. Enter creates a new line. Ctrl+Enter sends.
 // @author       Alucrud
 // @icon         https://t3.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=http://gemini.google.com&size=16
 // @updateURL    https://github.com/Alucrud/TamperMonkeyCrap/raw/main/pc/Gemini.user.js
@@ -11,10 +11,13 @@
 // @run-at       document-idle
 // ==/UserScript==
 
+/* jshint esversion: 11 */
+
 (function() {
     'use strict';
 
     let isAutoSelecting = false;
+    const DEFAULT_THINKING_LEVEL = 'medium';
 
     // Hotkey listener configuration
     document.addEventListener('keydown', function(e) {
@@ -24,10 +27,10 @@
                 e.preventDefault();
                 e.stopPropagation();
 
-                if (key === '1') executeSelection('lite', true);
-                else if (key === '2') executeSelection('flash', true);
-                else if (key === '3') executeSelection('pro', true);
-                else if (key === '4') executeSelection('extended thinking', false);
+                if (key === '1') executeSelection('lite', DEFAULT_THINKING_LEVEL);
+                else if (key === '2') executeSelection('flash', DEFAULT_THINKING_LEVEL);
+                else if (key === '3') executeSelection('pro', DEFAULT_THINKING_LEVEL);
+                else if (key === '4') cycleThinkingLevel();
             }
         }
     }, true);
@@ -46,11 +49,15 @@
         if (target === 'pro') {
             return str.indexOf('pro') !== -1;
         }
-        if (target === 'extended thinking' || target === 'extend') {
-            return str.indexOf('extend') !== -1 || str.indexOf('thinking') !== -1;
+        if (['low', 'medium', 'high'].includes(target)) {
+            return str.indexOf(target) !== -1;
         }
 
         return str.indexOf(target) !== -1;
+    }
+
+    function getPickerButton() {
+        return document.querySelector('button[data-test-id="bard-mode-menu-button"], button.input-area-switch, [data-test-id="logo-pill-label-container"]');
     }
 
     async function ensureMenuOpen(pickerBtn) {
@@ -61,78 +68,98 @@
                 await sleep(50);
             }
         }
-        return await waitForElement('gem-menu[role="menu"], [data-test-id="gem-mode-menu"]', 3000);
+        return await waitForElement('gem-menu[role="menu"], [data-test-id="gem-mode-menu"], .mat-mdc-menu-panel', 3000);
     }
 
-    async function executeSelection(targetText, defaultToExtended) {
-        var pickerBtn = document.querySelector('button[data-test-id="bard-mode-menu-button"]');
+    async function closeMenuIfOpen(pickerBtn) {
+        if (pickerBtn && pickerBtn.getAttribute('aria-expanded') === 'true') {
+            document.body.click();
+            await waitForMenuClose(pickerBtn, 1000);
+        }
+    }
+
+    async function setThinkingLevel(targetLevel, pickerBtn) {
+        if (!targetLevel) return;
+        var menuContainer = await ensureMenuOpen(pickerBtn);
+        if (!menuContainer) return;
+
+        var targetItem = await waitForMenuItem(
+            menuContainer,
+            'gem-menu-item, [role="menuitem"], [role="menuitemradio"], [role="menuitemcheckbox"], .mat-mdc-menu-item',
+            targetLevel,
+            3000
+        );
+
+        if (targetItem) {
+            targetItem.click();
+            await sleep(150);
+        }
+    }
+
+    async function cycleThinkingLevel() {
+        var pickerBtn = getPickerButton();
         if (!pickerBtn) return;
 
-        if (targetText === 'extended thinking') {
-            await toggleExtendedThinkingDirectly(pickerBtn);
-            focusChatbox();
-            return;
+        var currentLabel = pickerBtn.querySelector('.picker-primary-text, [data-test-id="logo-pill-label-container"]') || pickerBtn;
+        var currentText = currentLabel ? currentLabel.innerText.toLowerCase() : '';
+
+        // Cycle: Low -> Medium -> High -> Low
+        var nextLevel = 'medium';
+        if (currentText.indexOf('low') !== -1) {
+            nextLevel = 'medium';
+        } else if (currentText.indexOf('medium') !== -1) {
+            nextLevel = 'high';
+        } else if (currentText.indexOf('high') !== -1) {
+            nextLevel = 'low';
         }
 
-        var currentModelLabel = pickerBtn.querySelector('.picker-primary-text, [data-test-id="logo-pill-label-container"]');
+        await setThinkingLevel(nextLevel, pickerBtn);
+        await closeMenuIfOpen(pickerBtn);
+        focusChatbox();
+    }
+
+    async function executeSelection(targetModel, targetThinkingLevel) {
+        var pickerBtn = getPickerButton();
+        if (!pickerBtn) return;
+
+        var currentModelLabel = pickerBtn.querySelector('.picker-primary-text, [data-test-id="logo-pill-label-container"]') || pickerBtn;
         var currentText = currentModelLabel ? currentModelLabel.innerText : '';
-        var isBaseModelActive = matchesModel(currentText, targetText);
+        var isBaseModelActive = matchesModel(currentText, targetModel);
 
         if (!isBaseModelActive) {
             var menuContainer = await ensureMenuOpen(pickerBtn);
             if (!menuContainer) return;
 
-            var targetItem = await waitForMenuItem(menuContainer, 'gem-menu-item, [role="menuitem"]', targetText, 3000);
+            var targetItem = await waitForMenuItem(
+                menuContainer,
+                'gem-menu-item, [role="menuitem"], .mat-mdc-menu-item, [data-test-id^="bard-mode-option-"]',
+                targetModel,
+                3000
+            );
+
             if (targetItem) {
                 targetItem.click();
-                await waitForButtonTextToMatch(pickerBtn, targetText, 3000);
+                await waitForButtonTextToMatch(pickerBtn, targetModel, 3000);
             }
         }
 
-        if (defaultToExtended) {
-            currentModelLabel = pickerBtn.querySelector('.picker-primary-text, [data-test-id="logo-pill-label-container"]');
+        if (targetThinkingLevel) {
+            currentModelLabel = pickerBtn.querySelector('.picker-primary-text, [data-test-id="logo-pill-label-container"]') || pickerBtn;
             currentText = currentModelLabel ? currentModelLabel.innerText : '';
 
-            if (!matchesModel(currentText, 'extend')) {
-                var extendedMenuContainer = await ensureMenuOpen(pickerBtn);
-                if (extendedMenuContainer) {
-                    var extendedItem = await waitForMenuItem(extendedMenuContainer, 'gem-menu-item, [role="menuitem"], [role="menuitemcheckbox"]', 'extended thinking', 3000);
-                    if (extendedItem) {
-                        extendedItem.click();
-                        await waitForButtonTextToMatch(pickerBtn, 'extend', 3000);
-                    }
-                }
+            if (!matchesModel(currentText, targetThinkingLevel)) {
+                await setThinkingLevel(targetThinkingLevel, pickerBtn);
             }
         }
 
-        if (pickerBtn.getAttribute('aria-expanded') === 'true') {
-            document.body.click();
-            await waitForMenuClose(pickerBtn, 1000);
-        }
-
+        await closeMenuIfOpen(pickerBtn);
         focusChatbox();
-    }
-
-    async function toggleExtendedThinkingDirectly(pickerBtn) {
-        var menuContainer = await ensureMenuOpen(pickerBtn);
-        if (!menuContainer) return;
-
-        var extendedItem = await waitForMenuItem(menuContainer, 'gem-menu-item, [role="menuitem"], [role="menuitemcheckbox"]', 'extended thinking', 3000);
-        if (extendedItem) {
-            extendedItem.click();
-            await sleep(150);
-        }
-
-        if (pickerBtn.getAttribute('aria-expanded') === 'true') {
-            document.body.click();
-            await waitForMenuClose(pickerBtn, 1000);
-        }
     }
 
     function focusChatbox() {
         var retries = 8;
         var checkInterval = setInterval(function() {
-            var chatbox = document.querySelector('rich-textarea div.ql-editor.textarea[role="textbox"]');
+            var chatbox = document.querySelector('rich-textarea div.ql-editor.textarea[role="textbox"], rich-textarea .ql-editor');
             if (chatbox) {
                 chatbox.focus();
                 if (document.activeElement === chatbox) {
@@ -158,7 +185,7 @@
         return new Promise(function(resolve) {
             var startTime = Date.now();
             var checkInterval = setInterval(function() {
-                var label = button.querySelector('.picker-primary-text, [data-test-id="logo-pill-label-container"]');
+                var label = button.querySelector('.picker-primary-text, [data-test-id="logo-pill-label-container"]') || button;
                 var currentText = label ? label.innerText : '';
                 if (matchesModel(currentText, targetKey)) {
                     clearInterval(checkInterval);
@@ -261,29 +288,26 @@
         isAutoSelecting = true;
 
         try {
-            // Pause execution if the tab was opened in the background until the user switches to it
             await waitForTabToBeVisible();
 
-            // Wait up to 15s for cold start element rendering via MutationObserver
-            var pickerBtn = await waitForElement('button[data-test-id="bard-mode-menu-button"]', 15000);
+            var pickerBtn = await waitForElement('button[data-test-id="bard-mode-menu-button"], button.input-area-switch, [data-test-id="logo-pill-label-container"]', 15000);
             if (!pickerBtn) return;
 
-            // Retry up to 3 times to account for Angular hydration delays on cold start
             var attempts = 0;
             while (attempts < 3) {
-                var label = pickerBtn.querySelector('.picker-primary-text, [data-test-id="logo-pill-label-container"]');
+                var label = pickerBtn.querySelector('.picker-primary-text, [data-test-id="logo-pill-label-container"]') || pickerBtn;
                 var currentText = label ? label.innerText : '';
 
-                if (matchesModel(currentText, 'flash') && matchesModel(currentText, 'extend')) {
+                if (matchesModel(currentText, 'flash') && matchesModel(currentText, DEFAULT_THINKING_LEVEL)) {
                     break;
                 }
 
-                await executeSelection('flash', true);
+                await executeSelection('flash', DEFAULT_THINKING_LEVEL);
                 await sleep(300);
 
-                label = pickerBtn.querySelector('.picker-primary-text, [data-test-id="logo-pill-label-container"]');
+                label = pickerBtn.querySelector('.picker-primary-text, [data-test-id="logo-pill-label-container"]') || pickerBtn;
                 currentText = label ? label.innerText : '';
-                if (matchesModel(currentText, 'flash') && matchesModel(currentText, 'extend')) {
+                if (matchesModel(currentText, 'flash') && matchesModel(currentText, DEFAULT_THINKING_LEVEL)) {
                     break;
                 }
                 attempts++;
