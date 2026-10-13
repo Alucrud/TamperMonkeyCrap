@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Gemini - Auto Flash - Ctrl 1,2,3,4 to Toggle Models - Ctrl+Enter to Send
 // @namespace    http://tampermonkey.net/
-// @version      3.1
+// @version      3.1.1
 // @description  Defaults to Flash with Medium thinking on load/new chat. Enter creates a new line. Ctrl+Enter sends.
 // @author       Alucrud
 // @icon         https://t3.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=http://gemini.google.com&size=16
@@ -17,7 +17,7 @@
     'use strict';
 
     let isAutoSelecting = false;
-    const DEFAULT_THINKING_LEVEL = 'medium';
+    const DEFAULT_THINKING_LEVEL = 'high';
 
     // Hotkey listener configuration
     document.addEventListener('keydown', function(e) {
