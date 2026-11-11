@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Gemini - Auto Flash - Ctrl 1,2,3,4 to Toggle Models - Ctrl+Enter to Send
 // @namespace    http://tampermonkey.net/
-// @version      3.1.3
+// @version      3.1.4
 // @description  Defaults to Flash with Medium thinking on load/new chat. Enter creates a new line. Ctrl+Enter sends.
 // @author       Alucrud
 // @icon         https://t3.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=http://gemini.google.com&size=16
@@ -355,7 +355,18 @@
                 e.preventDefault();
                 e.stopPropagation();
 
-                var sendButton = document.querySelector('button[aria-label*="Send"], button.send-button, [data-test-id="send-button"]');
+                // Scope to the prompt input wrapper to avoid searching the sidebar or chat history
+                var inputContainer = e.target.closest('.input-area-container, .bottom-container, [class*="input-area"]') ||
+                                     document.querySelector('.input-area-container, .bottom-container, [class*="input-area"]');
+                var root = inputContainer || document;
+
+                var sendButton = root.querySelector(
+                    'button[aria-label="Send message"], ' +
+                    'button.send-button, ' +
+                    '.send-button-container button, ' +
+                    '[data-test-id="send-button"]'
+                );
+
                 if (sendButton && !sendButton.disabled) {
                     sendButton.click();
                 }
