@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Gemini - Auto Flash - Ctrl 1,2,3,4 to Toggle Models - Ctrl+Enter to Send
 // @namespace    http://tampermonkey.net/
-// @version      3.1.2
+// @version      3.1.3
 // @description  Defaults to Flash with Medium thinking on load/new chat. Enter creates a new line. Ctrl+Enter sends.
 // @author       Alucrud
 // @icon         https://t3.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=http://gemini.google.com&size=16
@@ -163,11 +163,12 @@
             if (chatbox) {
                 chatbox.focus();
                 if (document.activeElement === chatbox) {
-                    if (typeof window.getSelection !== 'undefined' && typeof document.createRange !== 'undefined') {
+                    var sel = window.getSelection();
+                    if (sel && typeof document.createRange !== 'undefined') {
                         var range = document.createRange();
-                        range.selectNodeContents(chatbox);
+                        var targetNode = chatbox.lastElementChild || chatbox;
+                        range.selectNodeContents(targetNode);
                         range.collapse(false);
-                        var sel = window.getSelection();
                         sel.removeAllRanges();
                         sel.addRange(range);
                     }
@@ -351,11 +352,13 @@
                     bubbles: true, cancelable: true, ctrlKey: false, shiftKey: true
                 }));
             } else if (e.ctrlKey) {
+                e.preventDefault();
                 e.stopPropagation();
-                e.target.dispatchEvent(new KeyboardEvent('keydown', {
-                    key: 'Enter', code: 'Enter', keyCode: 13, which: 13,
-                    bubbles: true, cancelable: true, ctrlKey: false, shiftKey: false
-                }));
+
+                var sendButton = document.querySelector('button[aria-label*="Send"], button.send-button, [data-test-id="send-button"]');
+                if (sendButton && !sendButton.disabled) {
+                    sendButton.click();
+                }
             }
         }
     }, true);
