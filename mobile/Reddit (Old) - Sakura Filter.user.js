@@ -3,6 +3,7 @@
 // @namespace    https://github.com/Alucrud/TamperMonkeyCrap
 // @version      2.4.0
 // @description  Clean anime-night app layout with built-in keyword and subreddit filter
+// @updateURL    https://github.com/Alucrud/TamperMonkeyCrap/raw/refs/heads/main/mobile/Reddit%20(Old)%20-%20Sakura%20Filter.user.js
 // @match        *://old.reddit.com/*
 // @run-at       document-end
 // @grant        none
