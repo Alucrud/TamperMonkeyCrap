@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Sakura Reddit - Ultimate Edition with Keyword Filter
 // @namespace    https://github.com/Alucrud/TamperMonkeyCrap
-// @version      2.7.1
+// @version      2.7.2
 // @description  Clean anime-night app layout with remote JSON regex keyword and subreddit filters
 // @match        *://old.reddit.com/*
 // @updateURL    https://github.com/Alucrud/TamperMonkeyCrap/raw/refs/heads/main/mobile/Reddit%20(Old)%20-%20Sakura%20Filter.user.js
@@ -25,6 +25,19 @@
 
   var compiledKeywords = [];
   var compiledSubreddits = [];
+
+  function parseJsonSafely(rawText) {
+    var clean = (rawText || "").replace(/^\uFEFF/, "").trim();
+    try {
+      return JSON.parse(clean);
+    } catch (firstErr) {
+      // Auto-repair accidental single-backslash regex escapes (e.g. \v, \s, \d, \w)
+      var repaired = clean.replace(/\\(["\\/bfnrtu])|\\(.)/g, function (match, validEsc, invalidEsc) {
+        return validEsc ? match : "\\\\" + invalidEsc;
+      });
+      return JSON.parse(repaired);
+    }
+  }
 
   function extractFilterEntries(source) {
     var list = [];
@@ -99,7 +112,7 @@
   try {
     var cachedRaw = localStorage.getItem(CACHE_DATA_KEY);
     if (cachedRaw) {
-      applyFilterData(JSON.parse(cachedRaw));
+      applyFilterData(parseJsonSafely(cachedRaw));
     }
   } catch (e) {}
 
@@ -122,9 +135,9 @@
     function handleResponseText(responseText) {
       var cleanText = (responseText || "").replace(/^\uFEFF/, "").trim();
       try {
-        var parsed = JSON.parse(cleanText);
+        var parsed = parseJsonSafely(cleanText);
         if (applyFilterData(parsed)) {
-          localStorage.setItem(CACHE_DATA_KEY, cleanText);
+          localStorage.setItem(CACHE_DATA_KEY, JSON.stringify(parsed));
           localStorage.setItem(CACHE_TIME_KEY, String(Date.now()));
           recheckAllPosts();
           if (statusBtn) {
