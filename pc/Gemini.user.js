@@ -1,63 +1,120 @@
 // ==UserScript==
-// @name         Gemini - Auto Flash - Ctrl 1,2,3,4 to Toggle Models - Ctrl+Enter to Send
+// @name         Gemini - Auto Model - Ctrl 1,2,3,4 to Toggle Models - Ctrl+Enter to Send
 // @namespace    http://tampermonkey.net/
-// @version      3.1.4
-// @description  Defaults to Flash with Medium thinking on load/new chat. Enter creates a new line. Ctrl+Enter sends.
+// @version      3.2.0
+// @description  Defaults to configured model/thinking level on load. Enter creates a new line. Ctrl+Enter sends.
 // @author       Alucrud
 // @icon         https://t3.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=http://gemini.google.com&size=16
-// @updateURL    https://github.com/Alucrud/TamperMonkeyCrap/raw/main/pc/Gemini.user.js
 // @match        https://gemini.google.com/*
 // @grant        none
 // @run-at       document-idle
 // ==/UserScript==
 
-/* jshint esversion: 11 */
-
 (function() {
     'use strict';
 
-    let isAutoSelecting = false;
-    const DEFAULT_THINKING_LEVEL = 'medium';
+    // =========================================================================
+    // CONFIGURATION: Update model names, aliases, and hotkeys here only
+    // =========================================================================
+    var CONFIG = {
+        defaultModelKey: 'fast',
+        defaultThinkingKey: 'medium',
+        thinkingCycleHotkey: '4',
+        thinkingCycleOrder: ['low', 'medium', 'high'],
+
+        models: {
+            lite: {
+                hotkey: '1',
+                keywords: ['lite'],
+                exclude: []
+            },
+            fast: {
+                hotkey: '2',
+                keywords: ['hydrogen', 'flash'], // Matches either name during rollouts
+                exclude: ['lite']
+            },
+            pro: {
+                hotkey: '3',
+                keywords: ['pro', 'argon', 'carbon'],
+                exclude: []
+            }
+        },
+
+        thinkingLevels: {
+            low: {
+                keywords: ['low']
+            },
+            medium: {
+                keywords: ['medium']
+            },
+            high: {
+                keywords: ['high']
+            }
+        }
+    };
+    // =========================================================================
+
+    var isAutoSelecting = false;
+
+    function matchesConfigEntry(text, entry) {
+        if (!text || !entry || !entry.keywords) return false;
+        var str = text.toLowerCase();
+
+        if (entry.exclude && entry.exclude.length > 0) {
+            for (var i = 0; i < entry.exclude.length; i++) {
+                if (str.indexOf(entry.exclude[i].toLowerCase()) !== -1) {
+                    return false;
+                }
+            }
+        }
+
+        for (var j = 0; j < entry.keywords.length; j++) {
+            if (str.indexOf(entry.keywords[j].toLowerCase()) !== -1) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    function getModelKeyByHotkey(pressedKey) {
+        var keys = Object.keys(CONFIG.models);
+        for (var i = 0; i < keys.length; i++) {
+            if (CONFIG.models[keys[i]].hotkey === pressedKey) {
+                return keys[i];
+            }
+        }
+        return null;
+    }
 
     // Hotkey listener configuration
     document.addEventListener('keydown', function(e) {
-        if (e.ctrlKey) {
-            var key = e.key;
-            if (['1', '2', '3', '4'].includes(key)) {
-                e.preventDefault();
-                e.stopPropagation();
+        if (!e.ctrlKey || e.altKey || e.shiftKey) return;
 
-                if (key === '1') executeSelection('lite', DEFAULT_THINKING_LEVEL);
-                else if (key === '2') executeSelection('flash', DEFAULT_THINKING_LEVEL);
-                else if (key === '3') executeSelection('pro', DEFAULT_THINKING_LEVEL);
-                else if (key === '4') cycleThinkingLevel();
-            }
+        var key = e.key;
+        if (key === CONFIG.thinkingCycleHotkey) {
+            e.preventDefault();
+            e.stopPropagation();
+            cycleThinkingLevel();
+            return;
+        }
+
+        var matchedModelKey = getModelKeyByHotkey(key);
+        if (matchedModelKey) {
+            e.preventDefault();
+            e.stopPropagation();
+            executeSelection(matchedModelKey, CONFIG.defaultThinkingKey);
         }
     }, true);
 
-    function matchesModel(text, targetKey) {
-        if (!text) return false;
-        var str = text.toLowerCase();
-        var target = targetKey.toLowerCase();
-
-        if (target === 'flash') {
-            return str.indexOf('flash') !== -1 && str.indexOf('lite') === -1;
-        }
-        if (target === 'lite') {
-            return str.indexOf('lite') !== -1;
-        }
-        if (target === 'pro') {
-            return str.indexOf('pro') !== -1;
-        }
-        if (['low', 'medium', 'high'].includes(target)) {
-            return str.indexOf(target) !== -1;
-        }
-
-        return str.indexOf(target) !== -1;
-    }
-
     function getPickerButton() {
         return document.querySelector('button[data-test-id="bard-mode-menu-button"], button.input-area-switch, [data-test-id="logo-pill-label-container"]');
+    }
+
+    function getPickerLabelText(pickerBtn) {
+        if (!pickerBtn) return '';
+        var label = pickerBtn.querySelector('.picker-primary-text, [data-test-id="logo-pill-label-container"]') || pickerBtn;
+        return label ? label.innerText : '';
     }
 
     async function ensureMenuOpen(pickerBtn) {
@@ -78,15 +135,17 @@
         }
     }
 
-    async function setThinkingLevel(targetLevel, pickerBtn) {
-        if (!targetLevel) return;
+    async function setThinkingLevel(thinkingKey, pickerBtn) {
+        var thinkingEntry = CONFIG.thinkingLevels[thinkingKey];
+        if (!thinkingEntry) return;
+
         var menuContainer = await ensureMenuOpen(pickerBtn);
         if (!menuContainer) return;
 
         var targetItem = await waitForMenuItem(
             menuContainer,
             'gem-menu-item, [role="menuitem"], [role="menuitemradio"], [role="menuitemcheckbox"], .mat-mdc-menu-item',
-            targetLevel,
+            thinkingEntry,
             3000
         );
 
@@ -100,31 +159,34 @@
         var pickerBtn = getPickerButton();
         if (!pickerBtn) return;
 
-        var currentLabel = pickerBtn.querySelector('.picker-primary-text, [data-test-id="logo-pill-label-container"]') || pickerBtn;
-        var currentText = currentLabel ? currentLabel.innerText.toLowerCase() : '';
+        var currentText = getPickerLabelText(pickerBtn);
+        var order = CONFIG.thinkingCycleOrder;
+        var currentIndex = -1;
 
-        // Cycle: Low -> Medium -> High -> Low
-        var nextLevel = 'medium';
-        if (currentText.indexOf('low') !== -1) {
-            nextLevel = 'medium';
-        } else if (currentText.indexOf('medium') !== -1) {
-            nextLevel = 'high';
-        } else if (currentText.indexOf('high') !== -1) {
-            nextLevel = 'low';
+        for (var i = 0; i < order.length; i++) {
+            if (matchesConfigEntry(currentText, CONFIG.thinkingLevels[order[i]])) {
+                currentIndex = i;
+                break;
+            }
         }
 
-        await setThinkingLevel(nextLevel, pickerBtn);
+        var nextIndex = (currentIndex === -1) ? 0 : (currentIndex + 1) % order.length;
+        var nextLevelKey = order[nextIndex];
+
+        await setThinkingLevel(nextLevelKey, pickerBtn);
         await closeMenuIfOpen(pickerBtn);
         focusChatbox();
     }
 
-    async function executeSelection(targetModel, targetThinkingLevel) {
+    async function executeSelection(modelKey, thinkingKey) {
+        var modelEntry = CONFIG.models[modelKey];
+        if (!modelEntry) return;
+
         var pickerBtn = getPickerButton();
         if (!pickerBtn) return;
 
-        var currentModelLabel = pickerBtn.querySelector('.picker-primary-text, [data-test-id="logo-pill-label-container"]') || pickerBtn;
-        var currentText = currentModelLabel ? currentModelLabel.innerText : '';
-        var isBaseModelActive = matchesModel(currentText, targetModel);
+        var currentText = getPickerLabelText(pickerBtn);
+        var isBaseModelActive = matchesConfigEntry(currentText, modelEntry);
 
         if (!isBaseModelActive) {
             var menuContainer = await ensureMenuOpen(pickerBtn);
@@ -133,22 +195,20 @@
             var targetItem = await waitForMenuItem(
                 menuContainer,
                 'gem-menu-item, [role="menuitem"], .mat-mdc-menu-item, [data-test-id^="bard-mode-option-"]',
-                targetModel,
+                modelEntry,
                 3000
             );
 
             if (targetItem) {
                 targetItem.click();
-                await waitForButtonTextToMatch(pickerBtn, targetModel, 3000);
+                await waitForButtonTextToMatch(pickerBtn, modelEntry, 3000);
             }
         }
 
-        if (targetThinkingLevel) {
-            currentModelLabel = pickerBtn.querySelector('.picker-primary-text, [data-test-id="logo-pill-label-container"]') || pickerBtn;
-            currentText = currentModelLabel ? currentModelLabel.innerText : '';
-
-            if (!matchesModel(currentText, targetThinkingLevel)) {
-                await setThinkingLevel(targetThinkingLevel, pickerBtn);
+        if (thinkingKey && CONFIG.thinkingLevels[thinkingKey]) {
+            currentText = getPickerLabelText(pickerBtn);
+            if (!matchesConfigEntry(currentText, CONFIG.thinkingLevels[thinkingKey])) {
+                await setThinkingLevel(thinkingKey, pickerBtn);
             }
         }
 
@@ -182,13 +242,12 @@
         }, 50);
     }
 
-    function waitForButtonTextToMatch(button, targetKey, timeoutMs) {
+    function waitForButtonTextToMatch(button, configEntry, timeoutMs) {
         return new Promise(function(resolve) {
             var startTime = Date.now();
             var checkInterval = setInterval(function() {
-                var label = button.querySelector('.picker-primary-text, [data-test-id="logo-pill-label-container"]') || button;
-                var currentText = label ? label.innerText : '';
-                if (matchesModel(currentText, targetKey)) {
+                var currentText = getPickerLabelText(button);
+                if (matchesConfigEntry(currentText, configEntry)) {
                     clearInterval(checkInterval);
                     resolve(true);
                 } else if ((Date.now() - startTime) > timeoutMs) {
@@ -226,11 +285,11 @@
         });
     }
 
-    function waitForMenuItem(contextElement, selector, targetKey, timeoutMs) {
+    function waitForMenuItem(contextElement, selector, configEntry, timeoutMs) {
         return new Promise(function(resolve) {
             var startTime = Date.now();
             var checkInterval = setInterval(function() {
-                var item = findElementByModelMatch(contextElement, selector, targetKey);
+                var item = findElementByConfigMatch(contextElement, selector, configEntry);
                 if (item) {
                     clearInterval(checkInterval);
                     resolve(item);
@@ -254,11 +313,11 @@
         });
     }
 
-    function findElementByModelMatch(contextElement, selector, targetKey) {
+    function findElementByConfigMatch(contextElement, selector, configEntry) {
         var elements = contextElement.querySelectorAll(selector);
         for (var i = 0; i < elements.length; i++) {
             var currentElement = elements[i];
-            if (currentElement.innerText && matchesModel(currentElement.innerText, targetKey)) {
+            if (currentElement.innerText && matchesConfigEntry(currentElement.innerText, configEntry)) {
                 return currentElement;
             }
         }
@@ -294,21 +353,22 @@
             var pickerBtn = await waitForElement('button[data-test-id="bard-mode-menu-button"], button.input-area-switch, [data-test-id="logo-pill-label-container"]', 15000);
             if (!pickerBtn) return;
 
+            var defaultModel = CONFIG.models[CONFIG.defaultModelKey];
+            var defaultThinking = CONFIG.thinkingLevels[CONFIG.defaultThinkingKey];
+
             var attempts = 0;
             while (attempts < 3) {
-                var label = pickerBtn.querySelector('.picker-primary-text, [data-test-id="logo-pill-label-container"]') || pickerBtn;
-                var currentText = label ? label.innerText : '';
+                var currentText = getPickerLabelText(pickerBtn);
 
-                if (matchesModel(currentText, 'flash') && matchesModel(currentText, DEFAULT_THINKING_LEVEL)) {
+                if (matchesConfigEntry(currentText, defaultModel) && matchesConfigEntry(currentText, defaultThinking)) {
                     break;
                 }
 
-                await executeSelection('flash', DEFAULT_THINKING_LEVEL);
+                await executeSelection(CONFIG.defaultModelKey, CONFIG.defaultThinkingKey);
                 await sleep(300);
 
-                label = pickerBtn.querySelector('.picker-primary-text, [data-test-id="logo-pill-label-container"]') || pickerBtn;
-                currentText = label ? label.innerText : '';
-                if (matchesModel(currentText, 'flash') && matchesModel(currentText, DEFAULT_THINKING_LEVEL)) {
+                currentText = getPickerLabelText(pickerBtn);
+                if (matchesConfigEntry(currentText, defaultModel) && matchesConfigEntry(currentText, defaultThinking)) {
                     break;
                 }
                 attempts++;
@@ -355,7 +415,6 @@
                 e.preventDefault();
                 e.stopPropagation();
 
-                // Scope to the prompt input wrapper to avoid searching the sidebar or chat history
                 var inputContainer = e.target.closest('.input-area-container, .bottom-container, [class*="input-area"]') ||
                                      document.querySelector('.input-area-container, .bottom-container, [class*="input-area"]');
                 var root = inputContainer || document;
