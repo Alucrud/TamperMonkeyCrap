@@ -1,43 +1,51 @@
 // ==UserScript==
 // @name         Sakura Reddit - Ultimate Edition with Keyword Filter
 // @namespace    https://github.com/Alucrud/TamperMonkeyCrap
-// @version      2.5.0
-// @description  Clean anime-night app layout with built-in regex keyword and subreddit filter
-// @updateURL    https://github.com/Alucrud/TamperMonkeyCrap/raw/refs/heads/main/mobile/Reddit%20(Old)%20-%20Sakura%20Filter.user.js
+// @version      2.7.0
+// @description  Clean anime-night app layout with remote JSON regex keyword and subreddit filters
 // @match        *://old.reddit.com/*
+// @updateURL    https://github.com/Alucrud/TamperMonkeyCrap/raw/refs/heads/main/mobile/Reddit%20(Old)%20-%20Sakura%20Filter.user.js
+// @downloadURL  https://github.com/Alucrud/TamperMonkeyCrap/raw/refs/heads/main/mobile/Reddit%20(Old)%20-%20Sakura%20Filter.user.js
+// @connect      github.com
+// @connect      raw.githubusercontent.com
 // @run-at       document-end
-// @grant        none
+// @grant        GM_xmlhttpRequest
 // ==/UserScript==
 
 (function () {
   "use strict";
 
   /* ==========================================================================
-     1. FILTER CONFIGURATION (Supports plain strings AND RegExp literals/strings)
-     Examples:
-       /\btrump\b/i       -> matches whole word "trump" only
-       /^ask/i            -> matches subreddits starting with "ask"
-       'elon|musk'        -> matches either "elon" or "musk"
+     1. REMOTE FILTER CONFIGURATION & CSP BYPASS LOADER
      ========================================================================== */
-  var keywords = [
-    'feel','CEO says','introduces bill','grok','i asked','cooked','rfk','upvote','slams',
-    'Press Secretary','Vance','Marjorie Taylor Greene','Drake','Kendrick','happy birthday',
-    'tesla','twitter','kanye','liberal','congress','spider','maga','woke','zuck','musk','elon','trump'
-  ];
+  var REMOTE_FILTERS_URL = "https://github.com/Alucrud/TamperMonkeyCrap/raw/refs/heads/main/mobile/RedditFilters.json";
+  var REMOTE_CACHE_HOURS = 1;
+  var CACHE_DATA_KEY = "sakura_remote_filters_v1";
+  var CACHE_TIME_KEY = "sakura_remote_filters_ts_v1";
 
-  var filteredSubreddits = [
-    'coaxed','vanderpump','lastofus','Wuthering','clashofclans','lostredditor','playboicarti',
-    'imaginary','4you','h3h3','stone','snorkblot','therewasanattempt','rareinsults','kanye','trump',
-    'youtube','KendrickLamar','19684','optimistsunite','mains','todayilearned','markmywords',
-    'tesla','facebook','cyberstuck','trashy','linkedin','ZZZ','getnoted','musk','joerogan',
-    'livestreamfail','nba','nfl','sports','meirl','_irl','meme','anime','shitpost','whenthe',
-    'economiccollapse','conservative','democrat','brawlstars','publicfreakout','cringe','funnyandsad',
-    'FacePalm','NikkeMobile','antiwork','workreform','spiders','jerk','comics','chainsawfolk',
-    'markiplier','AmIOverreacting','workreform','popculture','explainthejoke','bluesky','dank',
-    'peterexplains','india','losercity','programmerhumor','fortnite','onepiece','cfb','dandadan',
-    'ich_iel','zenless','finance','hololive','stonk','comebacks','ufc','buddy','wallstreet',
-    'bywords','twitter','leopards','formula','politic','adviceanimals','genshin','honkai'
-  ];
+  var compiledKeywords = [];
+  var compiledSubreddits = [];
+
+  function extractFilterEntries(source) {
+    var list = [];
+    if (!source) return list;
+
+    if (Array.isArray(source)) {
+      return source;
+    }
+
+    if (typeof source === "object") {
+      for (var key in source) {
+        if (Object.prototype.hasOwnProperty.call(source, key) && Array.isArray(source[key])) {
+          var arr = source[key];
+          for (var i = 0; i < arr.length; i++) {
+            list.push(arr[i]);
+          }
+        }
+      }
+    }
+    return list;
+  }
 
   function compileFilters(list) {
     var compiled = [];
@@ -45,14 +53,14 @@
       var item = list[i];
       if (item instanceof RegExp) {
         compiled.push(item);
-      } else if (typeof item === 'string' && item.length > 0) {
+      } else if (typeof item === "string" && item.length > 0) {
         var slashMatch = item.match(/^\/(.+)\/([gimsuy]*)$/);
         try {
           if (slashMatch) {
-            var flags = slashMatch[2].indexOf('i') === -1 ? slashMatch[2] + 'i' : slashMatch[2];
+            var flags = slashMatch[2].indexOf("i") === -1 ? slashMatch[2] + "i" : slashMatch[2];
             compiled.push(new RegExp(slashMatch[1], flags));
           } else {
-            compiled.push(new RegExp(item, 'i'));
+            compiled.push(new RegExp(item, "i"));
           }
         } catch (e) {
           compiled.push(item.toLowerCase());
@@ -60,6 +68,17 @@
       }
     }
     return compiled;
+  }
+
+  function applyFilterData(data) {
+    if (!data || typeof data !== "object") return false;
+
+    var rawKeywords = extractFilterEntries(data.keywordCategories || data.keywords);
+    var rawSubreddits = extractFilterEntries(data.subredditCategories || data.subreddits);
+
+    compiledKeywords = compileFilters(rawKeywords);
+    compiledSubreddits = compileFilters(rawSubreddits);
+    return true;
   }
 
   function matchesFilter(text, compiledList) {
@@ -76,8 +95,78 @@
     return false;
   }
 
-  var compiledKeywords = compileFilters(keywords);
-  var compiledSubreddits = compileFilters(filteredSubreddits);
+  // Load cached filters synchronously on startup so posts hide immediately
+  try {
+    var cachedRaw = localStorage.getItem(CACHE_DATA_KEY);
+    if (cachedRaw) {
+      applyFilterData(JSON.parse(cachedRaw));
+    }
+  } catch (e) {}
+
+  function fetchRemoteFilters(force, statusBtn) {
+    var lastSync = parseInt(localStorage.getItem(CACHE_TIME_KEY) || "0", 10);
+    var now = Date.now();
+    if (!force && now - lastSync < REMOTE_CACHE_HOURS * 3600 * 1000) {
+      return;
+    }
+
+    if (statusBtn) {
+      statusBtn.innerText = "syncing...";
+    }
+
+    var url = REMOTE_FILTERS_URL + (force ? "?t=" + now : "");
+    var gmXhr = typeof GM_xmlhttpRequest !== "undefined"
+      ? GM_xmlhttpRequest
+      : (typeof GM !== "undefined" && GM.xmlHttpRequest ? GM.xmlHttpRequest : null);
+
+    function handleResponseText(responseText) {
+      try {
+        var parsed = JSON.parse(responseText);
+        if (applyFilterData(parsed)) {
+          localStorage.setItem(CACHE_DATA_KEY, responseText);
+          localStorage.setItem(CACHE_TIME_KEY, String(Date.now()));
+          recheckAllPosts();
+          if (statusBtn) {
+            statusBtn.innerText = "synced!";
+            setTimeout(function () { statusBtn.innerText = "sync filters"; }, 1500);
+          }
+          return;
+        }
+      } catch (err) {}
+
+      if (statusBtn) {
+        statusBtn.innerText = "json error";
+        setTimeout(function () { statusBtn.innerText = "sync filters"; }, 2000);
+      }
+    }
+
+    function handleError() {
+      if (statusBtn) {
+        statusBtn.innerText = "sync failed";
+        setTimeout(function () { statusBtn.innerText = "sync filters"; }, 2000);
+      }
+    }
+
+    if (gmXhr) {
+      gmXhr({
+        method: "GET",
+        url: url,
+        onload: function (res) {
+          if (res.status >= 200 && res.status < 300) {
+            handleResponseText(res.responseText);
+          } else {
+            handleError();
+          }
+        },
+        onerror: handleError
+      });
+    } else if (typeof fetch === "function") {
+      fetch(url)
+        .then(function (r) { return r.text(); })
+        .then(handleResponseText)
+        .catch(handleError);
+    }
+  }
 
   /* ==========================================================================
      2. VIEWPORT & FONTS
@@ -113,7 +202,7 @@
     "html, body { background: var(--ink) !important; color: var(--cream) !important; font-family: var(--font) !important; font-size: 16px !important; line-height: 1.55 !important; margin: 0 !important; }",
     ".content[role='main'], .content { background: var(--ink) !important; max-width: 520px !important; margin: 0 auto !important; padding: 8px 10px 96px !important; box-sizing: border-box !important; }",
 
-    "/* Hidden posts filter rule - High specificity to override #siteTable */",
+    "/* Hidden posts filter rule */",
     "#siteTable .thing.link.sakura-filtered-post { display: none !important; }",
 
     "/* Header */",
@@ -216,23 +305,23 @@
   /* ==========================================================================
      4. DYNAMIC SUBREDDIT MUTING SYSTEM (LOCALSTORAGE)
      ========================================================================== */
-  var hiddenSubsStyle = document.createElement('style');
-  hiddenSubsStyle.id = 'userscript-hidden-subs-css';
+  var hiddenSubsStyle = document.createElement("style");
+  hiddenSubsStyle.id = "userscript-hidden-subs-css";
   document.head.appendChild(hiddenSubsStyle);
 
   function updateHiddenSubredditsCss() {
     var subs = [];
     try {
-      subs = JSON.parse(localStorage.getItem('userscript_hidden_subs') || '[]');
+      subs = JSON.parse(localStorage.getItem("userscript_hidden_subs") || "[]");
     } catch (e) {
       subs = [];
     }
 
-    var cssRules = '';
+    var cssRules = "";
     for (var j = 0; j < subs.length; j++) {
       cssRules += '#siteTable .thing.link[data-subreddit="' + subs[j] + '" i] { display: none !important; }\n';
     }
-    document.getElementById('userscript-hidden-subs-css').textContent = cssRules;
+    document.getElementById("userscript-hidden-subs-css").textContent = cssRules;
   }
 
   updateHiddenSubredditsCss();
@@ -243,7 +332,7 @@
   function copyTextToClipboard(text, btnElement) {
     function showFeedback() {
       var orig = btnElement.innerText;
-      btnElement.innerText = 'copied!';
+      btnElement.innerText = "copied!";
       setTimeout(function () {
         btnElement.innerText = orig;
       }, 1500);
@@ -259,15 +348,15 @@
   }
 
   function fallbackCopy(text, callback) {
-    var ta = document.createElement('textarea');
+    var ta = document.createElement("textarea");
     ta.value = text;
-    ta.style.position = 'fixed';
-    ta.style.opacity = '0';
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
     document.body.appendChild(ta);
     ta.focus();
     ta.select();
     try {
-      document.execCommand('copy');
+      document.execCommand("copy");
       if (callback) callback();
     } catch (e) {}
     document.body.removeChild(ta);
@@ -276,52 +365,65 @@
   /* ==========================================================================
      6. MAIN POST PROCESSING & FILTERING LOOP
      ========================================================================== */
+  function recheckAllPosts() {
+    if (document.body.classList.contains("comments-page")) return;
+    var posts = document.querySelectorAll(".thing.link");
+    for (var i = 0; i < posts.length; i++) {
+      var post = posts[i];
+      var titleLink = post.querySelector("a.title");
+      var titleText = titleLink ? titleLink.innerText : "";
+      var subName = post.getAttribute("data-subreddit") || "";
+      if (matchesFilter(titleText, compiledKeywords) || matchesFilter(subName, compiledSubreddits)) {
+        post.classList.add("sakura-filtered-post");
+      } else {
+        post.classList.remove("sakura-filtered-post");
+      }
+    }
+  }
+
   function processPosts() {
-    var isCommentsPage = document.body.classList.contains('comments-page');
-    var posts = document.querySelectorAll('.thing.link:not(.sakura-processed)');
+    var isCommentsPage = document.body.classList.contains("comments-page");
+    var posts = document.querySelectorAll(".thing.link:not(.sakura-processed)");
 
     for (var i = 0; i < posts.length; i++) {
       var post = posts[i];
-      post.classList.add('sakura-processed');
+      post.classList.add("sakura-processed");
 
-      var titleLink = post.querySelector('a.title');
-      var titleText = titleLink ? titleLink.innerText : '';
-      var subName = post.getAttribute('data-subreddit') || '';
+      var titleLink = post.querySelector("a.title");
+      var titleText = titleLink ? titleLink.innerText : "";
+      var subName = post.getAttribute("data-subreddit") || "";
 
-      // A. Regex / Keyword & Subreddit Filtering Check (Skip filtering on comments page itself)
+      // A. Regex / Keyword & Subreddit Filtering Check
       if (!isCommentsPage) {
-        var matchesKeyword = matchesFilter(titleText, compiledKeywords);
-        var matchesSub = matchesFilter(subName, compiledSubreddits);
-
-        if (matchesKeyword || matchesSub) {
-          post.classList.add('sakura-filtered-post');
+        if (matchesFilter(titleText, compiledKeywords) || matchesFilter(subName, compiledSubreddits)) {
+          post.classList.add("sakura-filtered-post");
           continue;
         }
       }
 
       // B. Layout & Dynamic Enhancements
-      var commentsLink = post.querySelector('.bylink.comments');
-      var postUrl = post.getAttribute('data-url');
-      var thumbnailLink = post.querySelector('a.thumbnail');
-      var thumbnailImg = post.querySelector('a.thumbnail img');
-      var expandoBtn = post.querySelector('.expando-button');
-      var isGallery = post.getAttribute('data-is-gallery') === 'true';
-      var isVideo = post.getAttribute('data-domain') === 'v.redd.it';
-      var buttonsList = post.querySelector('.flat-list.buttons');
+      var commentsLink = post.querySelector(".bylink.comments");
+      var postUrl = post.getAttribute("data-url");
+      var thumbnailLink = post.querySelector("a.thumbnail");
+      var thumbnailImg = post.querySelector("a.thumbnail img");
+      var expandoBtn = post.querySelector(".expando-button");
+      var isGallery = post.getAttribute("data-is-gallery") === "true";
+      var isVideo = post.getAttribute("data-domain") === "v.redd.it";
+      var buttonsList = post.querySelector(".flat-list.buttons");
 
       // Copy Clean reddit.com Link Button (Comments Page Only)
-      if (isCommentsPage && buttonsList && !buttonsList.querySelector('.copy-clean-link-btn')) {
-        var copyLi = document.createElement('li');
-        var copyBtn = document.createElement('a');
-        copyBtn.href = 'javascript:void(0);';
-        copyBtn.className = 'copy-clean-link-btn';
-        copyBtn.innerText = 'copy link';
+      if (isCommentsPage && buttonsList && !buttonsList.querySelector(".copy-clean-link-btn")) {
+        var copyLi = document.createElement("li");
+        var copyBtn = document.createElement("a");
+        copyBtn.href = "javascript:void(0);";
+        copyBtn.className = "copy-clean-link-btn";
+        copyBtn.innerText = "copy link";
 
         var rawHref = commentsLink ? commentsLink.href : window.location.href;
         var cleanUrl = rawHref
-          .split('?')[0]
-          .split('#')[0]
-          .replace(/^https?:\/\/([a-z0-9-]+\.)?reddit\.com/i, 'https://reddit.com');
+          .split("?")[0]
+          .split("#")[0]
+          .replace(/^https?:\/\/([a-z0-9-]+\.)?reddit\.com/i, "https://reddit.com");
 
         copyBtn.onclick = (function (urlToCopy, btn) {
           return function (e) {
@@ -337,29 +439,29 @@
 
       // Mute Subreddit Button Injection
       if (buttonsList && subName) {
-        if (!buttonsList.querySelector('.mute-sub-btn')) {
-          var hideLi = document.createElement('li');
-          var hideBtn = document.createElement('a');
-          hideBtn.href = 'javascript:void(0);';
-          hideBtn.className = 'mute-sub-btn';
-          hideBtn.innerText = 'mute r/' + subName;
+        if (!buttonsList.querySelector(".mute-sub-btn")) {
+          var hideLi = document.createElement("li");
+          var hideBtn = document.createElement("a");
+          hideBtn.href = "javascript:void(0);";
+          hideBtn.className = "mute-sub-btn";
+          hideBtn.innerText = "mute r/" + subName;
 
           hideBtn.onclick = (function (sub) {
             return function (e) {
               e.preventDefault();
               e.stopPropagation();
 
-              if (confirm('Are you sure you want to permanently mute all posts from r/' + sub + '?')) {
+              if (confirm("Are you sure you want to permanently mute all posts from r/" + sub + "?")) {
                 var currentHidden = [];
                 try {
-                  currentHidden = JSON.parse(localStorage.getItem('userscript_hidden_subs') || '[]');
+                  currentHidden = JSON.parse(localStorage.getItem("userscript_hidden_subs") || "[]");
                 } catch (err) {
                   currentHidden = [];
                 }
 
                 if (currentHidden.indexOf(sub) === -1) {
                   currentHidden.push(sub);
-                  localStorage.setItem('userscript_hidden_subs', JSON.stringify(currentHidden));
+                  localStorage.setItem("userscript_hidden_subs", JSON.stringify(currentHidden));
                   updateHiddenSubredditsCss();
                 }
               }
@@ -374,16 +476,16 @@
       // High-res Image Logic
       if (thumbnailImg && postUrl && !isVideo) {
         var isDirectImage = /\.(jpeg|jpg|gif|png|webp)($|\?)/i.test(postUrl);
-        var isImgur = postUrl.indexOf('imgur.com') !== -1 && postUrl.indexOf('/a/') === -1 && postUrl.indexOf('/gallery/') === -1;
+        var isImgur = postUrl.indexOf("imgur.com") !== -1 && postUrl.indexOf("/a/") === -1 && postUrl.indexOf("/gallery/") === -1;
 
         if (isDirectImage) {
           thumbnailImg.src = postUrl;
         } else if (isImgur) {
-          thumbnailImg.src = postUrl + '.jpg';
+          thumbnailImg.src = postUrl + ".jpg";
         } else if (isGallery) {
           var galleryMatch = thumbnailImg.src.match(/(?:preview|external-preview)\.redd\.it\/([a-zA-Z0-9.\-_]+)\?/);
           if (galleryMatch) {
-            thumbnailImg.src = 'https://i.redd.it/' + galleryMatch[1];
+            thumbnailImg.src = "https://i.redd.it/" + galleryMatch[1];
           }
         }
       }
@@ -391,19 +493,19 @@
       // Link Routing & Expando Logic
       if (titleLink && commentsLink) {
         titleLink.href = commentsLink.href;
-        titleLink.removeAttribute('data-outbound-url');
-        titleLink.removeAttribute('data-href-url');
+        titleLink.removeAttribute("data-outbound-url");
+        titleLink.removeAttribute("data-href-url");
       }
 
       if (thumbnailLink) {
-        thumbnailLink.removeAttribute('data-outbound-url');
-        thumbnailLink.removeAttribute('data-href-url');
+        thumbnailLink.removeAttribute("data-outbound-url");
+        thumbnailLink.removeAttribute("data-href-url");
       }
 
       if (thumbnailImg) {
         if (expandoBtn) {
-          expandoBtn.style.display = 'none';
-          thumbnailLink.href = 'javascript:void(0);';
+          expandoBtn.style.display = "none";
+          thumbnailLink.href = "javascript:void(0);";
           thumbnailLink.onclick = (function (btn) {
             return function (e) {
               e.preventDefault();
@@ -416,9 +518,9 @@
         }
       } else {
         if (expandoBtn) {
-          expandoBtn.style.display = 'block';
-          expandoBtn.style.float = 'left';
-          expandoBtn.style.margin = '4px 12px 4px 0';
+          expandoBtn.style.display = "block";
+          expandoBtn.style.float = "left";
+          expandoBtn.style.margin = "4px 12px 4px 0";
         }
       }
     }
@@ -428,15 +530,15 @@
      7. INLINE COMMENT IMAGE VIEWING
      ========================================================================== */
   function processCommentImages() {
-    var commentLinks = document.querySelectorAll('.comment .usertext-body .md a:not(.sakura-img-checked)');
+    var commentLinks = document.querySelectorAll(".comment .usertext-body .md a:not(.sakura-img-checked)");
 
     for (var i = 0; i < commentLinks.length; i++) {
       var link = commentLinks[i];
-      link.classList.add('sakura-img-checked');
+      link.classList.add("sakura-img-checked");
 
-      if (link.querySelector('img')) continue;
+      if (link.querySelector("img")) continue;
 
-      var href = link.href || '';
+      var href = link.href || "";
       var imgSrc = null;
 
       if (/\.(jpe?g|png|gif|webp|avif)(\?.*)?$/i.test(href)) {
@@ -446,16 +548,16 @@
       } else {
         var imgurMatch = href.match(/^https?:\/\/(?:i\.|m\.|www\.)?imgur\.com\/([a-zA-Z0-9]{5,8})\/?$/i);
         if (imgurMatch) {
-          imgSrc = 'https://i.imgur.com/' + imgurMatch[1] + '.jpg';
+          imgSrc = "https://i.imgur.com/" + imgurMatch[1] + ".jpg";
         }
       }
 
       if (imgSrc) {
         var originalText = link.textContent;
-        var img = document.createElement('img');
+        var img = document.createElement("img");
         img.src = imgSrc;
-        img.className = 'sakura-comment-img';
-        img.loading = 'lazy';
+        img.className = "sakura-comment-img";
+        img.loading = "lazy";
 
         img.onerror = (function (anchor, imageEl, fallbackText) {
           return function () {
@@ -469,27 +571,48 @@
         })(link, img, originalText);
 
         var trimmedText = originalText.trim();
-        if (trimmedText === '<image>' || trimmedText === href || /^https?:\/\//i.test(trimmedText)) {
-          link.textContent = '';
+        if (trimmedText === "<image>" || trimmedText === href || /^https?:\/\//i.test(trimmedText)) {
+          link.textContent = "";
         }
         link.appendChild(img);
       }
     }
   }
 
+  /* ==========================================================================
+     8. HEADER MANUAL SYNC BUTTON & CLEANUP
+     ========================================================================== */
+  var headerRight = document.getElementById("header-bottom-right");
+  if (headerRight && !document.getElementById("sakura-sync-filters-btn")) {
+    var sep = document.createElement("span");
+    sep.className = "separator";
+    sep.textContent = " | ";
+
+    var syncBtn = document.createElement("a");
+    syncBtn.id = "sakura-sync-filters-btn";
+    syncBtn.href = "javascript:void(0);";
+    syncBtn.innerText = "sync filters";
+    syncBtn.onclick = function (e) {
+      e.preventDefault();
+      fetchRemoteFilters(true, syncBtn);
+    };
+
+    headerRight.appendChild(sep);
+    headerRight.appendChild(syncBtn);
+  }
+
+  // Hide "Get New Reddit" links
+  var links = document.getElementsByTagName("a");
+  for (var k = 0; k < links.length; k++) {
+    if (links[k].innerText && links[k].innerText.toLowerCase() === "get new reddit") {
+      links[k].style.display = "none";
+    }
+  }
+
   /* Run initially on load */
   processPosts();
   processCommentImages();
-
-  /* ==========================================================================
-     8. DYNAMIC CONTENT & CLEANUP
-     ========================================================================== */
-  var links = document.getElementsByTagName('a');
-  for (var k = 0; k < links.length; k++) {
-    if (links[k].innerText && links[k].innerText.toLowerCase() === 'get new reddit') {
-      links[k].style.display = 'none';
-    }
-  }
+  fetchRemoteFilters(false, null);
 
   var observer = new MutationObserver(function () {
     processPosts();
