@@ -1,13 +1,13 @@
 // ==UserScript==
 // @name         Sakura Reddit - Ultimate Edition with Keyword Filter
 // @namespace    https://github.com/Alucrud/TamperMonkeyCrap
-// @version      2.7.0
+// @version      2.7.1
 // @description  Clean anime-night app layout with remote JSON regex keyword and subreddit filters
 // @match        *://old.reddit.com/*
 // @updateURL    https://github.com/Alucrud/TamperMonkeyCrap/raw/refs/heads/main/mobile/Reddit%20(Old)%20-%20Sakura%20Filter.user.js
 // @downloadURL  https://github.com/Alucrud/TamperMonkeyCrap/raw/refs/heads/main/mobile/Reddit%20(Old)%20-%20Sakura%20Filter.user.js
-// @connect      github.com
 // @connect      raw.githubusercontent.com
+// @connect      github.com
 // @run-at       document-end
 // @grant        GM_xmlhttpRequest
 // ==/UserScript==
@@ -18,7 +18,7 @@
   /* ==========================================================================
      1. REMOTE FILTER CONFIGURATION & CSP BYPASS LOADER
      ========================================================================== */
-  var REMOTE_FILTERS_URL = "https://github.com/Alucrud/TamperMonkeyCrap/raw/refs/heads/main/mobile/RedditFilters.json";
+  var REMOTE_FILTERS_URL = "https://raw.githubusercontent.com/Alucrud/TamperMonkeyCrap/main/mobile/RedditFilters.json";
   var REMOTE_CACHE_HOURS = 1;
   var CACHE_DATA_KEY = "sakura_remote_filters_v1";
   var CACHE_TIME_KEY = "sakura_remote_filters_ts_v1";
@@ -120,19 +120,25 @@
       : (typeof GM !== "undefined" && GM.xmlHttpRequest ? GM.xmlHttpRequest : null);
 
     function handleResponseText(responseText) {
+      var cleanText = (responseText || "").replace(/^\uFEFF/, "").trim();
       try {
-        var parsed = JSON.parse(responseText);
+        var parsed = JSON.parse(cleanText);
         if (applyFilterData(parsed)) {
-          localStorage.setItem(CACHE_DATA_KEY, responseText);
+          localStorage.setItem(CACHE_DATA_KEY, cleanText);
           localStorage.setItem(CACHE_TIME_KEY, String(Date.now()));
           recheckAllPosts();
           if (statusBtn) {
-            statusBtn.innerText = "synced!";
-            setTimeout(function () { statusBtn.innerText = "sync filters"; }, 1500);
+            statusBtn.innerText = "synced (" + compiledKeywords.length + "k/" + compiledSubreddits.length + "s)";
+            setTimeout(function () { statusBtn.innerText = "sync filters"; }, 2500);
           }
           return;
         }
-      } catch (err) {}
+      } catch (err) {
+        if (force) {
+          var preview = cleanText.slice(0, 140) || "(empty response)";
+          alert("Filter JSON Parse Error:\n" + err.message + "\n\nResponse starts with:\n" + preview);
+        }
+      }
 
       if (statusBtn) {
         statusBtn.innerText = "json error";
@@ -140,7 +146,10 @@
       }
     }
 
-    function handleError() {
+    function handleError(detail) {
+      if (force && detail) {
+        alert("Filter Sync Network Error:\n" + detail);
+      }
       if (statusBtn) {
         statusBtn.innerText = "sync failed";
         setTimeout(function () { statusBtn.innerText = "sync filters"; }, 2000);
@@ -155,16 +164,21 @@
           if (res.status >= 200 && res.status < 300) {
             handleResponseText(res.responseText);
           } else {
-            handleError();
+            handleError("HTTP " + res.status + " from " + url);
           }
         },
-        onerror: handleError
+        onerror: function () {
+          handleError("Request blocked or offline.");
+        }
       });
     } else if (typeof fetch === "function") {
       fetch(url)
-        .then(function (r) { return r.text(); })
+        .then(function (r) {
+          if (!r.ok) throw new Error("HTTP " + r.status);
+          return r.text();
+        })
         .then(handleResponseText)
-        .catch(handleError);
+        .catch(function (e) { handleError(e.message); });
     }
   }
 
