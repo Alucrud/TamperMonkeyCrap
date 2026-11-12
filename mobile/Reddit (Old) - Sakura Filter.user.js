@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Sakura Reddit - Ultimate Edition with Keyword Filter
 // @namespace    https://github.com/Alucrud/TamperMonkeyCrap
-// @version      2.8.0
+// @version      2.9.0
 // @description  Clean anime-night app layout with remote JSON regex keyword and subreddit filters
 // @match        *://old.reddit.com/*
 // @updateURL    https://github.com/Alucrud/TamperMonkeyCrap/raw/refs/heads/main/mobile/Reddit%20(Old)%20-%20Sakura%20Filter.user.js
@@ -230,27 +230,38 @@
     "/* Hidden posts filter rule */",
     "#siteTable .thing.link.sakura-filtered-post { display: none !important; }",
 
-    "/* Compact Header (No Logo) */",
+    "/* Compact Sticky Header */",
     "#header { position: sticky !important; top: 0 !important; z-index: 100 !important; background: rgba(19, 17, 28, .92) !important; backdrop-filter: blur(14px) saturate(1.4); -webkit-backdrop-filter: blur(14px) saturate(1.4); border-bottom: 1px solid var(--line) !important; height: auto !important; padding: 6px 12px !important; }",
-    "#header-img, #header-img-a { display: none !important; }",
-    "#header-bottom-left { display: flex !important; align-items: center; gap: 8px; overflow-x: auto; scrollbar-width: none; }",
-    "#header-bottom-left::-webkit-scrollbar { display: none; }",
-    "#header-bottom-left .pagename { font-size: 13px !important; font-weight: 800 !important; margin: 0 !important; white-space: nowrap; }",
-    "#header-bottom-left .pagename a { color: var(--sakura) !important; }",
-    "#header-bottom-left .tabmenu { display: flex !important; gap: 5px; overflow-x: auto; margin: 0 !important; scrollbar-width: none; }",
-    "#header-bottom-left .tabmenu::-webkit-scrollbar { display: none; }",
-    "#header-bottom-left .tabmenu li { margin: 0 !important; }",
-    "#header-bottom-left .tabmenu li a { display: block; background: var(--ink-soft) !important; color: var(--mist) !important; border: 1px solid var(--line) !important; border-radius: 999px !important; padding: 4px 11px !important; font-size: 12px !important; font-weight: 700 !important; }",
-    "#header-bottom-left .tabmenu li.selected a { background: var(--sakura) !important; border-color: var(--sakura) !important; color: var(--ink) !important; }",
 
-    "/* Compact Header Right & Collapsible More Drawer */",
-    "#header-bottom-right { position: static !important; background: transparent !important; border-radius: 0 !important; padding: 5px 0 0 !important; font-size: 12px !important; color: var(--mist) !important; display: flex !important; flex-wrap: wrap; align-items: center; gap: 4px; }",
+    "/* Top Feed & Subreddit Bar (Home, Popular, All, Subscriptions) */",
+    "#sr-header-area { display: block !important; background: transparent !important; border: 0 !important; height: auto !important; line-height: normal !important; padding: 0 0 6px 0 !important; margin: 0 !important; overflow-x: auto !important; -webkit-overflow-scrolling: touch; scrollbar-width: none; }",
+    "#sr-header-area::-webkit-scrollbar { display: none; }",
+    "#sr-header-area .width-clip { display: flex !important; align-items: center !important; position: static !important; width: max-content !important; gap: 6px !important; }",
+    "#sr-header-area .sr-list { display: flex !important; align-items: center !important; gap: 6px !important; overflow: visible !important; }",
+    "#sr-header-area .sr-bar { display: flex !important; align-items: center !important; gap: 6px !important; float: none !important; margin: 0 !important; }",
+    "#sr-header-area .sr-bar li { display: inline-flex !important; align-items: center !important; float: none !important; margin: 0 !important; }",
+    "#sr-header-area .sr-bar li a.choice { display: inline-block !important; background: var(--ink-soft) !important; color: var(--cream) !important; border: 1px solid var(--line) !important; border-radius: 999px !important; padding: 5px 12px !important; font-size: 12px !important; font-weight: 700 !important; text-transform: lowercase !important; text-decoration: none !important; }",
+    "#sr-header-area .sr-bar:first-of-type li:nth-child(-n+3) a.choice { border-color: var(--sakura-dim) !important; color: var(--sakura) !important; }",
+    "#sr-header-area .separator, #sr-header-area .dropdown.srdrop, #sr-header-area .drop-choices.srdrop, #sr-more-link { display: none !important; }",
+
+    "/* Hide Logo & Default Sort Bar (Moved inside More Drawer) */",
+    "#header-img, #header-img-a, #header-bottom-left { display: none !important; }",
+
+    "/* Compact Account & More Toggle Row */",
+    "#header-bottom-right { position: static !important; background: transparent !important; border-radius: 0 !important; padding: 2px 0 0 !important; font-size: 12px !important; color: var(--mist) !important; display: flex !important; flex-wrap: wrap; align-items: center; gap: 6px; }",
     "#header-bottom-right a { color: var(--glow) !important; }",
-    "#sakura-more-toggle { color: var(--sakura) !important; font-weight: 700 !important; cursor: pointer; }",
-    "#sakura-more-drawer { display: none; flex-wrap: wrap; gap: 6px; padding-top: 7px; margin-top: 6px; border-top: 1px solid var(--line); }",
+    "#sakura-current-sub { color: var(--sakura) !important; font-weight: 800 !important; font-size: 12px !important; text-decoration: none !important; margin-right: 2px; }",
+    "#sakura-more-toggle { margin-left: auto !important; display: inline-flex !important; align-items: center !important; background: var(--ink-raise) !important; color: var(--sakura) !important; border: 1px solid var(--sakura-dim) !important; border-radius: 999px !important; padding: 4px 12px !important; min-height: 28px; font-size: 12px !important; font-weight: 800 !important; cursor: pointer; text-decoration: none !important; }",
+
+    "/* Thumb-Friendly Collapsible More Drawer */",
+    "#sakura-more-drawer { display: none; flex-direction: column; gap: 8px; padding-top: 8px; margin-top: 7px; border-top: 1px solid var(--line); }",
     "#sakura-more-drawer.open { display: flex !important; }",
-    "#sakura-more-drawer a, #sakura-more-drawer form.logout a { display: inline-block; background: var(--ink-soft) !important; color: var(--cream) !important; border: 1px solid var(--line) !important; border-radius: 999px !important; padding: 3px 10px !important; font-size: 11px !important; font-weight: 700 !important; text-decoration: none !important; }",
-    "#sakura-more-drawer form.logout { display: inline-block !important; margin: 0 !important; }",
+    ".sakura-drawer-group { display: flex; flex-wrap: wrap; gap: 8px; }",
+    ".sakura-drawer-group + .sakura-drawer-group { padding-top: 8px; border-top: 1px dashed var(--line); }",
+    "#sakura-more-drawer a, #sakura-more-drawer form.logout a { display: inline-flex !important; align-items: center !important; justify-content: center !important; flex: 1 1 auto !important; min-height: 40px !important; background: var(--ink-soft) !important; color: var(--cream) !important; border: 1px solid var(--line) !important; border-radius: 12px !important; padding: 8px 14px !important; font-size: 13px !important; font-weight: 700 !important; text-transform: lowercase !important; text-decoration: none !important; box-sizing: border-box !important; }",
+    "#sakura-more-drawer a.sakura-sort-active, #sakura-more-drawer a.sakura-home-btn { border-color: var(--sakura) !important; color: var(--sakura) !important; }",
+    "#sakura-more-drawer form.logout { display: inline-flex !important; flex: 1 1 auto !important; margin: 0 !important; }",
+    "#sakura-more-drawer form.logout a { width: 100% !important; color: var(--mist) !important; }",
 
     "/* Export Muted Modal */",
     "#sakura-export-backdrop { position: fixed; inset: 0; z-index: 9999; background: rgba(10, 9, 15, .82); display: flex; align-items: center; justify-content: center; padding: 16px; }",
@@ -259,12 +270,12 @@
     "#sakura-export-box p { margin: 0 0 10px; font-size: 12px; color: var(--mist); }",
     "#sakura-export-text { width: 100%; height: 96px; background: var(--ink); color: var(--glow); border: 1px solid var(--line); border-radius: 10px; padding: 8px; font-family: monospace; font-size: 12px; box-sizing: border-box; resize: vertical; }",
     "#sakura-export-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }",
-    "#sakura-export-actions button { padding: 6px 14px !important; font-size: 12px !important; cursor: pointer; }",
+    "#sakura-export-actions button { padding: 8px 16px !important; min-height: 38px; font-size: 13px !important; cursor: pointer; }",
     "#sakura-export-clear { background: var(--ink-raise) !important; color: var(--mist) !important; border: 1px solid var(--line) !important; }",
     "#sakura-export-close { background: var(--ink-raise) !important; color: var(--cream) !important; border: 1px solid var(--line) !important; margin-left: auto; }",
 
     "/* Sidebar, Left White Multireddit Bar & Elements to Hide */",
-    ".side, .listing-chooser, .sr-header-area, #sr-header-area, .rank, .listingsignupbar, .infobar, .spacer > .infobar, .redesign-beta-optin, #redesign-beta-optin-btn, .mobileweb-onboarding-toast { display: none !important; }",
+    ".side, .listing-chooser, .sr-header-area, .rank, .listingsignupbar, .infobar, .spacer > .infobar, .redesign-beta-optin, #redesign-beta-optin-btn, .mobileweb-onboarding-toast { display: none !important; }",
 
     "/* Hide Specific Action Buttons */",
     ".reply-button, .crosspost-button, a[data-event-action='permalink'], a.embed-comment, .flat-list.buttons li.share, .flat-list.buttons li.report-button, .flat-list.buttons li.save-button, .flat-list.buttons li.hide-button { display: none !important; }",
@@ -713,13 +724,56 @@
      ========================================================================== */
   function setupCompactHeaderMenu() {
     var header = document.getElementById("header");
+    var headerLeft = document.getElementById("header-bottom-left");
     var headerRight = document.getElementById("header-bottom-right");
     if (!header || !headerRight || document.getElementById("sakura-more-toggle")) return;
+
+    // Show active subreddit badge on compact bar when inside a subreddit
+    if (headerLeft) {
+      var subLink = headerLeft.querySelector(".pagename a");
+      if (subLink) {
+        var badge = document.createElement("a");
+        badge.id = "sakura-current-sub";
+        badge.href = subLink.href;
+        badge.textContent = "r/" + subLink.textContent.trim();
+        headerRight.insertBefore(badge, headerRight.firstChild);
+      }
+    }
 
     var drawer = document.createElement("div");
     drawer.id = "sakura-more-drawer";
 
-    // Sync Filters button
+    // Group 1: Home + Sort Tabs (hot, new, rising, top, etc.)
+    var navGroup = document.createElement("div");
+    navGroup.className = "sakura-drawer-group";
+
+    var homeBtn = document.createElement("a");
+    homeBtn.href = "https://old.reddit.com/";
+    homeBtn.className = "sakura-home-btn";
+    homeBtn.innerText = "home";
+    navGroup.appendChild(homeBtn);
+
+    if (headerLeft) {
+      var tabItems = headerLeft.querySelectorAll(".tabmenu li");
+      for (var t = 0; t < tabItems.length; t++) {
+        var origLink = tabItems[t].querySelector("a");
+        if (origLink) {
+          var sortBtn = document.createElement("a");
+          sortBtn.href = origLink.href;
+          sortBtn.textContent = origLink.textContent.trim();
+          if (tabItems[t].classList.contains("selected")) {
+            sortBtn.classList.add("sakura-sort-active");
+          }
+          navGroup.appendChild(sortBtn);
+        }
+      }
+    }
+    drawer.appendChild(navGroup);
+
+    // Group 2: Filter Tools & Account Actions
+    var toolsGroup = document.createElement("div");
+    toolsGroup.className = "sakura-drawer-group";
+
     var syncBtn = document.createElement("a");
     syncBtn.id = "sakura-sync-filters-btn";
     syncBtn.href = "javascript:void(0);";
@@ -729,9 +783,8 @@
       e.stopPropagation();
       fetchRemoteFilters(true, syncBtn);
     };
-    drawer.appendChild(syncBtn);
+    toolsGroup.appendChild(syncBtn);
 
-    // Export Muted Subreddits button
     var exportBtn = document.createElement("a");
     exportBtn.id = "sakura-export-muted-btn";
     exportBtn.href = "javascript:void(0);";
@@ -743,31 +796,26 @@
       toggleBtn.innerText = "more \u25BE";
       openExportMutedModal();
     };
-    drawer.appendChild(exportBtn);
+    toolsGroup.appendChild(exportBtn);
 
-    // Move native "preferences" link into the drawer
     var prefsLink = headerRight.querySelector('a[href*="/prefs"]');
     if (prefsLink) {
       if (prefsLink.previousElementSibling && prefsLink.previousElementSibling.classList.contains("separator")) {
         prefsLink.previousElementSibling.remove();
       }
-      drawer.appendChild(prefsLink);
+      toolsGroup.appendChild(prefsLink);
     }
 
-    // Move native "logout" form into the drawer
     var logoutForm = headerRight.querySelector("form.logout");
     if (logoutForm) {
       if (logoutForm.previousElementSibling && logoutForm.previousElementSibling.classList.contains("separator")) {
         logoutForm.previousElementSibling.remove();
       }
-      drawer.appendChild(logoutForm);
+      toolsGroup.appendChild(logoutForm);
     }
+    drawer.appendChild(toolsGroup);
 
-    // Add "more ▾" toggle button to the compact top bar
-    var sep = document.createElement("span");
-    sep.className = "separator";
-    sep.textContent = "|";
-
+    // Add "more ▾" pill button to the compact top bar
     var toggleBtn = document.createElement("a");
     toggleBtn.id = "sakura-more-toggle";
     toggleBtn.href = "javascript:void(0);";
@@ -779,7 +827,6 @@
       toggleBtn.innerText = isOpen ? "more \u25B4" : "more \u25BE";
     };
 
-    headerRight.appendChild(sep);
     headerRight.appendChild(toggleBtn);
     header.appendChild(drawer);
 
