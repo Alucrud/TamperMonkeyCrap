@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Sakura Reddit - Ultimate Edition with Keyword Filter
 // @namespace    https://github.com/Alucrud/TamperMonkeyCrap
-// @version      2.7.2
+// @version      2.8.0
 // @description  Clean anime-night app layout with remote JSON regex keyword and subreddit filters
 // @match        *://old.reddit.com/*
 // @updateURL    https://github.com/Alucrud/TamperMonkeyCrap/raw/refs/heads/main/mobile/Reddit%20(Old)%20-%20Sakura%20Filter.user.js
@@ -31,7 +31,6 @@
     try {
       return JSON.parse(clean);
     } catch (firstErr) {
-      // Auto-repair accidental single-backslash regex escapes (e.g. \v, \s, \d, \w)
       var repaired = clean.replace(/\\(["\\/bfnrtu])|\\(.)/g, function (match, validEsc, invalidEsc) {
         return validEsc ? match : "\\\\" + invalidEsc;
       });
@@ -108,7 +107,6 @@
     return false;
   }
 
-  // Load cached filters synchronously on startup so posts hide immediately
   try {
     var cachedRaw = localStorage.getItem(CACHE_DATA_KEY);
     if (cachedRaw) {
@@ -232,21 +230,41 @@
     "/* Hidden posts filter rule */",
     "#siteTable .thing.link.sakura-filtered-post { display: none !important; }",
 
-    "/* Header */",
-    "#header { position: sticky !important; top: 0 !important; z-index: 100 !important; background: rgba(19, 17, 28, .88) !important; backdrop-filter: blur(14px) saturate(1.4); -webkit-backdrop-filter: blur(14px) saturate(1.4); border-bottom: 1px solid var(--line) !important; height: auto !important; padding: 10px 14px !important; }",
-    "#header-img, #header img { height: 28px !important; }",
-    "#sr-header-area { background: transparent !important; border: 0 !important; color: var(--mist) !important; font-size: 10px !important; white-space: nowrap !important; overflow-x: auto !important; -webkit-overflow-scrolling: touch; scrollbar-width: none; }",
-    "#sr-header-area::-webkit-scrollbar { display: none; }",
-    "#sr-header-area a { color: var(--mist) !important; }",
-    "#header-bottom-left .tabmenu { display: flex !important; gap: 6px; overflow-x: auto; margin: 8px 0 0 !important; scrollbar-width: none; }",
+    "/* Compact Header (No Logo) */",
+    "#header { position: sticky !important; top: 0 !important; z-index: 100 !important; background: rgba(19, 17, 28, .92) !important; backdrop-filter: blur(14px) saturate(1.4); -webkit-backdrop-filter: blur(14px) saturate(1.4); border-bottom: 1px solid var(--line) !important; height: auto !important; padding: 6px 12px !important; }",
+    "#header-img, #header-img-a { display: none !important; }",
+    "#header-bottom-left { display: flex !important; align-items: center; gap: 8px; overflow-x: auto; scrollbar-width: none; }",
+    "#header-bottom-left::-webkit-scrollbar { display: none; }",
+    "#header-bottom-left .pagename { font-size: 13px !important; font-weight: 800 !important; margin: 0 !important; white-space: nowrap; }",
+    "#header-bottom-left .pagename a { color: var(--sakura) !important; }",
+    "#header-bottom-left .tabmenu { display: flex !important; gap: 5px; overflow-x: auto; margin: 0 !important; scrollbar-width: none; }",
     "#header-bottom-left .tabmenu::-webkit-scrollbar { display: none; }",
-    "#header-bottom-left .tabmenu li a { display: block; background: var(--ink-soft) !important; color: var(--mist) !important; border: 1px solid var(--line) !important; border-radius: 999px !important; padding: 6px 14px !important; font-size: 13px !important; font-weight: 700 !important; }",
+    "#header-bottom-left .tabmenu li { margin: 0 !important; }",
+    "#header-bottom-left .tabmenu li a { display: block; background: var(--ink-soft) !important; color: var(--mist) !important; border: 1px solid var(--line) !important; border-radius: 999px !important; padding: 4px 11px !important; font-size: 12px !important; font-weight: 700 !important; }",
     "#header-bottom-left .tabmenu li.selected a { background: var(--sakura) !important; border-color: var(--sakura) !important; color: var(--ink) !important; }",
-    "#header-bottom-right { position: static !important; background: transparent !important; border-radius: 0 !important; padding: 6px 0 0 !important; font-size: 12px !important; color: var(--mist) !important; }",
+
+    "/* Compact Header Right & Collapsible More Drawer */",
+    "#header-bottom-right { position: static !important; background: transparent !important; border-radius: 0 !important; padding: 5px 0 0 !important; font-size: 12px !important; color: var(--mist) !important; display: flex !important; flex-wrap: wrap; align-items: center; gap: 4px; }",
     "#header-bottom-right a { color: var(--glow) !important; }",
+    "#sakura-more-toggle { color: var(--sakura) !important; font-weight: 700 !important; cursor: pointer; }",
+    "#sakura-more-drawer { display: none; flex-wrap: wrap; gap: 6px; padding-top: 7px; margin-top: 6px; border-top: 1px solid var(--line); }",
+    "#sakura-more-drawer.open { display: flex !important; }",
+    "#sakura-more-drawer a, #sakura-more-drawer form.logout a { display: inline-block; background: var(--ink-soft) !important; color: var(--cream) !important; border: 1px solid var(--line) !important; border-radius: 999px !important; padding: 3px 10px !important; font-size: 11px !important; font-weight: 700 !important; text-decoration: none !important; }",
+    "#sakura-more-drawer form.logout { display: inline-block !important; margin: 0 !important; }",
+
+    "/* Export Muted Modal */",
+    "#sakura-export-backdrop { position: fixed; inset: 0; z-index: 9999; background: rgba(10, 9, 15, .82); display: flex; align-items: center; justify-content: center; padding: 16px; }",
+    "#sakura-export-box { width: 100%; max-width: 440px; background: var(--ink-soft); border: 1px solid var(--sakura-dim); border-radius: 16px; padding: 16px; box-sizing: border-box; color: var(--cream); }",
+    "#sakura-export-box h3 { margin: 0 0 6px; font-size: 16px; color: var(--sakura); }",
+    "#sakura-export-box p { margin: 0 0 10px; font-size: 12px; color: var(--mist); }",
+    "#sakura-export-text { width: 100%; height: 96px; background: var(--ink); color: var(--glow); border: 1px solid var(--line); border-radius: 10px; padding: 8px; font-family: monospace; font-size: 12px; box-sizing: border-box; resize: vertical; }",
+    "#sakura-export-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }",
+    "#sakura-export-actions button { padding: 6px 14px !important; font-size: 12px !important; cursor: pointer; }",
+    "#sakura-export-clear { background: var(--ink-raise) !important; color: var(--mist) !important; border: 1px solid var(--line) !important; }",
+    "#sakura-export-close { background: var(--ink-raise) !important; color: var(--cream) !important; border: 1px solid var(--line) !important; margin-left: auto; }",
 
     "/* Sidebar, Left White Multireddit Bar & Elements to Hide */",
-    ".side, .listing-chooser, .sr-header-area, .rank, .listingsignupbar, .infobar, .spacer > .infobar, .redesign-beta-optin, #redesign-beta-optin-btn, .mobileweb-onboarding-toast { display: none !important; }",
+    ".side, .listing-chooser, .sr-header-area, #sr-header-area, .rank, .listingsignupbar, .infobar, .spacer > .infobar, .redesign-beta-optin, #redesign-beta-optin-btn, .mobileweb-onboarding-toast { display: none !important; }",
 
     "/* Hide Specific Action Buttons */",
     ".reply-button, .crosspost-button, a[data-event-action='permalink'], a.embed-comment, .flat-list.buttons li.share, .flat-list.buttons li.report-button, .flat-list.buttons li.save-button, .flat-list.buttons li.hide-button { display: none !important; }",
@@ -336,14 +354,17 @@
   hiddenSubsStyle.id = "userscript-hidden-subs-css";
   document.head.appendChild(hiddenSubsStyle);
 
-  function updateHiddenSubredditsCss() {
-    var subs = [];
+  function getMutedSubs() {
     try {
-      subs = JSON.parse(localStorage.getItem("userscript_hidden_subs") || "[]");
+      var list = JSON.parse(localStorage.getItem("userscript_hidden_subs") || "[]");
+      return Array.isArray(list) ? list : [];
     } catch (e) {
-      subs = [];
+      return [];
     }
+  }
 
+  function updateHiddenSubredditsCss() {
+    var subs = getMutedSubs();
     var cssRules = "";
     for (var j = 0; j < subs.length; j++) {
       cssRules += '#siteTable .thing.link[data-subreddit="' + subs[j] + '" i] { display: none !important; }\n';
@@ -354,10 +375,11 @@
   updateHiddenSubredditsCss();
 
   /* ==========================================================================
-     5. CLIPBOARD HELPER
+     5. CLIPBOARD & MUTED SUBREDDITS EXPORT MODAL
      ========================================================================== */
   function copyTextToClipboard(text, btnElement) {
     function showFeedback() {
+      if (!btnElement) return;
       var orig = btnElement.innerText;
       btnElement.innerText = "copied!";
       setTimeout(function () {
@@ -387,6 +409,92 @@
       if (callback) callback();
     } catch (e) {}
     document.body.removeChild(ta);
+  }
+
+  function openExportMutedModal() {
+    var existing = document.getElementById("sakura-export-backdrop");
+    if (existing) existing.remove();
+
+    var subs = getMutedSubs().map(function (s) {
+      return String(s).trim().toLowerCase();
+    }).filter(Boolean);
+
+    subs.sort();
+    var uniqueSubs = [];
+    for (var i = 0; i < subs.length; i++) {
+      if (uniqueSubs.indexOf(subs[i]) === -1) {
+        uniqueSubs.push(subs[i]);
+      }
+    }
+
+    var formattedOutput = uniqueSubs.length > 0
+      ? '"/^(' + uniqueSubs.join("|") + ')$/i"'
+      : "No subreddits muted locally yet.";
+
+    var backdrop = document.createElement("div");
+    backdrop.id = "sakura-export-backdrop";
+
+    var box = document.createElement("div");
+    box.id = "sakura-export-box";
+
+    var title = document.createElement("h3");
+    title.innerText = "Muted Subreddits (" + uniqueSubs.length + ")";
+
+    var desc = document.createElement("p");
+    desc.innerText = "Copy this JSON-ready regex rule to paste into RedditFilters.json:";
+
+    var textarea = document.createElement("textarea");
+    textarea.id = "sakura-export-text";
+    textarea.readOnly = true;
+    textarea.value = formattedOutput;
+
+    var actions = document.createElement("div");
+    actions.id = "sakura-export-actions";
+
+    var copyBtn = document.createElement("button");
+    copyBtn.type = "button";
+    copyBtn.innerText = "Copy Regex";
+    copyBtn.onclick = function () {
+      textarea.select();
+      copyTextToClipboard(formattedOutput, copyBtn);
+    };
+
+    var clearBtn = document.createElement("button");
+    clearBtn.type = "button";
+    clearBtn.id = "sakura-export-clear";
+    clearBtn.innerText = "Clear Local List";
+    clearBtn.onclick = function () {
+      if (confirm("Clear all " + uniqueSubs.length + " locally muted subreddits? (Make sure you copied them first!)")) {
+        localStorage.removeItem("userscript_hidden_subs");
+        updateHiddenSubredditsCss();
+        backdrop.remove();
+      }
+    };
+
+    var closeBtn = document.createElement("button");
+    closeBtn.type = "button";
+    closeBtn.id = "sakura-export-close";
+    closeBtn.innerText = "Close";
+    closeBtn.onclick = function () {
+      backdrop.remove();
+    };
+
+    backdrop.onclick = function (e) {
+      if (e.target === backdrop) backdrop.remove();
+    };
+
+    actions.appendChild(copyBtn);
+    if (uniqueSubs.length > 0) {
+      actions.appendChild(clearBtn);
+    }
+    actions.appendChild(closeBtn);
+
+    box.appendChild(title);
+    box.appendChild(desc);
+    box.appendChild(textarea);
+    box.appendChild(actions);
+    backdrop.appendChild(box);
+    document.body.appendChild(backdrop);
   }
 
   /* ==========================================================================
@@ -479,13 +587,7 @@
               e.stopPropagation();
 
               if (confirm("Are you sure you want to permanently mute all posts from r/" + sub + "?")) {
-                var currentHidden = [];
-                try {
-                  currentHidden = JSON.parse(localStorage.getItem("userscript_hidden_subs") || "[]");
-                } catch (err) {
-                  currentHidden = [];
-                }
-
+                var currentHidden = getMutedSubs();
                 if (currentHidden.indexOf(sub) === -1) {
                   currentHidden.push(sub);
                   localStorage.setItem("userscript_hidden_subs", JSON.stringify(currentHidden));
@@ -607,26 +709,90 @@
   }
 
   /* ==========================================================================
-     8. HEADER MANUAL SYNC BUTTON & CLEANUP
+     8. COMPACT HEADER "MORE" MENU & CLEANUP
      ========================================================================== */
-  var headerRight = document.getElementById("header-bottom-right");
-  if (headerRight && !document.getElementById("sakura-sync-filters-btn")) {
-    var sep = document.createElement("span");
-    sep.className = "separator";
-    sep.textContent = " | ";
+  function setupCompactHeaderMenu() {
+    var header = document.getElementById("header");
+    var headerRight = document.getElementById("header-bottom-right");
+    if (!header || !headerRight || document.getElementById("sakura-more-toggle")) return;
 
+    var drawer = document.createElement("div");
+    drawer.id = "sakura-more-drawer";
+
+    // Sync Filters button
     var syncBtn = document.createElement("a");
     syncBtn.id = "sakura-sync-filters-btn";
     syncBtn.href = "javascript:void(0);";
     syncBtn.innerText = "sync filters";
     syncBtn.onclick = function (e) {
       e.preventDefault();
+      e.stopPropagation();
       fetchRemoteFilters(true, syncBtn);
+    };
+    drawer.appendChild(syncBtn);
+
+    // Export Muted Subreddits button
+    var exportBtn = document.createElement("a");
+    exportBtn.id = "sakura-export-muted-btn";
+    exportBtn.href = "javascript:void(0);";
+    exportBtn.innerText = "export muted";
+    exportBtn.onclick = function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      drawer.classList.remove("open");
+      toggleBtn.innerText = "more \u25BE";
+      openExportMutedModal();
+    };
+    drawer.appendChild(exportBtn);
+
+    // Move native "preferences" link into the drawer
+    var prefsLink = headerRight.querySelector('a[href*="/prefs"]');
+    if (prefsLink) {
+      if (prefsLink.previousElementSibling && prefsLink.previousElementSibling.classList.contains("separator")) {
+        prefsLink.previousElementSibling.remove();
+      }
+      drawer.appendChild(prefsLink);
+    }
+
+    // Move native "logout" form into the drawer
+    var logoutForm = headerRight.querySelector("form.logout");
+    if (logoutForm) {
+      if (logoutForm.previousElementSibling && logoutForm.previousElementSibling.classList.contains("separator")) {
+        logoutForm.previousElementSibling.remove();
+      }
+      drawer.appendChild(logoutForm);
+    }
+
+    // Add "more ▾" toggle button to the compact top bar
+    var sep = document.createElement("span");
+    sep.className = "separator";
+    sep.textContent = "|";
+
+    var toggleBtn = document.createElement("a");
+    toggleBtn.id = "sakura-more-toggle";
+    toggleBtn.href = "javascript:void(0);";
+    toggleBtn.innerText = "more \u25BE";
+    toggleBtn.onclick = function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      var isOpen = drawer.classList.toggle("open");
+      toggleBtn.innerText = isOpen ? "more \u25B4" : "more \u25BE";
     };
 
     headerRight.appendChild(sep);
-    headerRight.appendChild(syncBtn);
+    headerRight.appendChild(toggleBtn);
+    header.appendChild(drawer);
+
+    // Close drawer when tapping outside header
+    document.addEventListener("click", function (e) {
+      if (!header.contains(e.target) && drawer.classList.contains("open")) {
+        drawer.classList.remove("open");
+        toggleBtn.innerText = "more \u25BE";
+      }
+    });
   }
+
+  setupCompactHeaderMenu();
 
   // Hide "Get New Reddit" links
   var links = document.getElementsByTagName("a");
