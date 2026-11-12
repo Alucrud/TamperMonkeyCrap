@@ -1,1 +1,92 @@
-
+{
+  "keywordCategories": {
+    "politics": [
+      "/\\b(donald|trump|drumpf|hillary|clinton|sanders|bernie|vance|rfk|elon|musk|zuck)\\b/i",
+      "/\\bMarjorie Taylor Greene\\b/i",
+      "/\\b(liberal|congress|maga|woke|election|introduces bill|press secretary)\\b/i"
+    ],
+    "celebritiesAndDrama": [
+      "/\\b(drake|kendrick|kanye|harambe)\\b/i",
+      "/\\b(tesla|twitter|grok)\\b/i",
+      "/\\b(coke|coca[- ]?cola)\\b/i"
+    ],
+    "redditClichesAndKarmaBait": [
+      "/happy.*(birthday|anniversary)|\\bhappy \\d+/i",
+      "/\\bautis(m|tic)\\b/i",
+      "/\\b(just )?met\\b|\\bran in ?to\\b/i",
+      "/\\b\\d+\\s*(lbs?|pounds)\\b|\\b(lost|gained|my) (weight|progress)\\b/i",
+      "/\\b(cosplay|costume)s?\\b/i",
+      "/\\b(if you vote this up|upvote|appreciation thread|starter ?packs?|secret santa)\\b/i",
+      "/\\b(CEO says|i asked|cooked|slams|hydraulic press)\\b/i",
+      "feel",
+      "<-",
+      "<~"
+    ],
+    "misc": [
+      "/\\bspiders?\\b/i"
+    ]
+  },
+  "subredditCategories": {
+    "patterns": [
+      "/(_irl|meirl|ik_ihe)$/i",
+      "/(circle_?jerk|snark)$/i",
+      "/^(?!dankchristianmemes).*?(memes?|dank|shitpost)/i",
+      "/(4you|starterpacks?)$/i",
+      "/(politic|trump|drumpf|elon|musk|liberal|conservative|democrat|republican|sanders|bernie|clinton|libertarian|socialis[mt]|anarch)/i",
+      "/(peterexplains|explainthejoke)/i",
+      "/^(genshin|honkai|zenless|wuthering|starrail)|^zzz$/i",
+      "/(^fc|fc$\vert{}united$|rovers$\vert{}wanderers$|hotspur$\vert{}albion$|athletic$\vert{}calcio$|football$\vert{}soccer$)/i",
+      "/^(fc|ac|as|rc|sc|cd|ud|vfb|vfl|sv|tsv|1fc)[a-z0-9_]+$/i"
+    ],
+    "exactMatch": [
+      "/^(de|eve|wow|ufc|nba|nfl|nhl|mlb|mls|cfb|btc|lsd|see|osu|ps4|tf2|fo4|eu4|civ|asu|ecu|gmu|lsu|smu|tcu|ucf|usc|usf|vcu|wde|wfu|wsu)$/i"
+    ],
+    "socialAndCreators": [
+      "/(facebook|twitter|bluesky|linkedin|youtube|tiktok)/i",
+      "/^(cowchop|cynicalbritofficial|filthyfrank|gamegrumps|h3h3(productions)?|ice_poseidon|idubbbz|jontron|kappa|livestreamfail|markiplier|nerdcubed|roosterteeth|rwby|sips|sourcefed|twobestfriendsplay)$/i"
+    ],
+    "politicsAndActivism": [
+      "/^(antiwork|workreform|dncleaks|esist|altright|thenewright|whereisassange|wikileaks|economiccollapse|markmywords|getnoted|leopardsatemyface|leopards|bad_cop_no_donut|conspiracy|kotakuinaction|mensrights|mgtow|murica|sjwhate|theredpill)$/i"
+    ],
+    "cringeAndDrama": [
+      "/^(4panelcringe|amioverreacting|bywords|comedycemetery|comebacks|cringe|facepalm|forwardsfromgrandma|funnyandsad|gatekeeping|hittablefaces|iamverysmart|im14andthisisdeep|justneckbeardthings|lewronggeneration|lostredditor|madlads|mallninjashit|niceguys|optimistsunite|publicfreakout|quityourbullshit|rareinsults|therewasanattempt|trashy|tumblrinaction)$/i"
+    ],
+    "textAndAbsurd": [
+      "/^(4chan|coaxedintoasnafu|coaxed|creepypms|gaben|getmotivated|greentext|hmmm|kenm|knightsofpineapple|ledootgeneration|losercity|onetruegod|ooer|snorkblot|thathappened|tinder|whenthe|youdontsurf)$/i"
+    ],
+    "gaming": [
+      "/^(2007scape|bannedfromclubpenguin|brawlstars|clashofclans|clashroyale|competitiveoverwatch|crusaderkings|destinythegame|dota2|elderscrolls|elderscrollsonline|elitedangerous|fallout|ffbraveexvius|ffxiv|ffxv|fireemblem|fireemblemheroes|forhonor|forhonorknights|fortnite|gaming|globaloffensive|guildwars2|halo|hearthstone|heroesofthestorm|kingdomhearts|leagueoflegends|magictcg|masseffect|minecraft|mountandblade|nba2k|nebbyinthebag|nikkemobile|nomansskythegame|paradoxplaza|paragon|pathofexile|playrust|pokemon|pokemongo|programmerhumor|puzzleanddragons|runescape|skyrim|smashbros|smite|starcitizen|starcraft|stellaris|streetfighter|summonerswar|terraria|touhou|warframe|witcher|xboxone|yugioh)$/i"
+    ],
+    "animeTvAndComics": [
+      "/^(anime|asoiaf|bobsburgers|bojackhorseman|breakingbad|chainsawfolk|comics|dandadan|doctorwho|flashtv|hololive|lastofus|makingamurderer|mylittlepony|naruto|onepiece|onepunchman|rupaulsdragrace|samuraijack|shield|siliconvalleyhbo|southpark|stevenuniverse|strangerthings|survivor|the_dennis|thelastairbender|thewalkingdead|vanderpump|westworld)$/i"
+    ],
+    "musicAndPopCulture": [
+      "/^(bangtan|beatles|daftpunk|frankocean|gorillaz|kanye|kendricklamar|kpop|listentothis|monstercat|music|playboicarti|popculture|radiohead)$/i"
+    ],
+    "financeAndCrypto": [
+      "/^(ayymd|bitcoin|cyberstuck|finance|millionairemakers|stonk|wallstreet|wallstreetbets)$/i"
+    ],
+    "lifestyleAndSelfies": [
+      "/^(askgaybros|atheism|beards|beauty|bodybuilding|daddit|exjw|exmormon|fashion|futurology|gaybros|gaybrosgonemild|gaymers|happy|kpics|lastimages|lgbt|loseit|mtf|nofap|shorthairedhotties|skincareaddiction|sneakers|standupshots|streetwear|subaru|supremeclothing|transtimelines|trees|vaporents|vegan)$/i"
+    ],
+    "miscSubs": [
+      "/^(imaginary|mains|spiders|stone|todayilearned)$/i"
+    ],
+    "locationsAndRegional": [
+      "/^(atlanta|austin|australia|bayarea|boston|brasil|canada|chicago|china|cirkeltrek|dallas|denmark|denver|france|houston|ich_iel|india|japan|london|losangeles|melbourne|mexico|minnesota|montreal|newzealand|nyc|philadelphia|philippines|portland|romania|saltlakecity|sanfrancisco|scotland|seattle|suomi|sweden|sydney|texas|the_schulz|thenetherlands|toronto|unitedkingdom|vancouver|wales|washingtondc)$/i"
+    ],
+    "sportsLeagues": [
+      "/^(afl|afcon|allsvenskan|baseball|boxing|bundesliga|championship|collegebasketball|concacaf|copaamerica|cricket|eliteserien|eredivisie|fantasyfootball|fifa|formula1|formula|hockey|jleague|kleague|laliga|leagueone|leaguetwo|ligamx|ligue1|mma|premierleague|primeiraliga|rugbyunion|seriea|sports|superettan|superligaen|usopencup|veikkausliiga|zweiteliga)$/i"
+    ],
+    "usProAndCollegeTeams": [
+      "/^(angelsbaseball|astros|azdiamondbacks|braves|brewers|buccos|cardinals|coloradorockies|cubs|dodgers|kcroyals|letsgofish|mariners|minnesotatwins|motorcitykitties|nationals|newyorkmets|nyyankees|oaklandathletics|orioles|padres|phillies|reds|redsox|sfgiants|tampabayrays|texasrangers|torontobluejays|wahoostipi|whitesox)$/i",
+      "/^(atlantahawks|bostonceltics|charlottehornets|chicagobulls|clevelandcavs|denvernuggets|detroitpistons|gonets|heat|kings|laclippers|lakers|mavericks|memphisgrizzlies|mkebucks|nbaspurs|nolapelicans|nyknicks|orlandomagic|pacers|ripcity|rockets|sixers|suns|thunder|timberwolves|torontoraptors|utahjazz|warriors|washingtonwizards)$/i",
+      "/^(49ers|azcardinals|bengals|browns|buccaneers|buffalobills|chargers|chibears|colts|cowboys|denverbroncos|detroitlions|eagles|falcons|greenbaypackers|jaguars|kansascitychiefs|miamidolphins|minnesotavikings|nygiants|nyjets|oaklandraiders|panthers|patriots|ravens|redskins|saints|seahawks|steelers|stlouisrams|tennesseetitans|texans)$/i",
+      "/^(anaheimducks|bluejackets|bostonbruins|calgaryflames|canes|canucks|caps|coloradoavalanche|coyotes|dallasstars|detroitredwings|devils|edmontonoilers|floridapanthers|flyers|habs|hawks|leafs|losangeleskings|newyorkislanders|ottawasenators|penguins|predators|rangers|sabres|sanjosesharks|stlouisblues|tampabaylightning|wildhockey|winnipegjets)$/i",
+      "/^(12thman|allhail|arizonawildcats|baylor|bc_eagles|berkeley|billikensbasketball|boilermakers|butleruniversity|cincybearcats|clemsontigers|cuse|cyclonenation|davidson|depaul|ducks|dukeblueplanet|duquesne|fightingillini|floridagators|fordham|fsusports|gamecocks|georgetown|georgiabulldogs|gobonnies|gobuffs|gonorthwestern|gophersports|gwu|hawkeyesports|hokies|huskers|husky|indianahoosiers|jayhawks|kstate|lasalle|longhornnation|miamihurricanes|michiganwolverines|mizzou|mountaineers|msstate|mubb|ncsu_wolfpack|notredamesports|ockytop|ohiostatebasketball|okstate|olemiss|oregonstate|pittsports|providencecollege|ramblinwreck|razorbacks|redstorm|rolltide|scarletknights|shubb|sooners|stanfordcardinal|tarheels|temple|terps|texastech|theonlycolors|thwnd|tulane|uclabruins|uconn|umass|universityofhouston|univri|uofdayton|uofmemphis|uofu|urichmond|utulsa|uvabasketball|vandysports|villanova|wearepennstate|whiteandblue|wildcats|wisconsinbadgers|xavieruniversity)$/i"
+    ],
+    "soccerSpecificClubs": [
+      "/^(aafk|achorsens|achtzehn99|adelaideunited|adodenhaag|ahly|aik|alhilal|apoel|arminia|atalanta|azalkmaar|banfield|bantams|barca|bayer04|benfica|besiktas|bluebirds|bocajuniors|borussiadortmund|brann|brentford|burnley|cariverplate|cercle|cfrcluj|chivas|ciclon|clubs|corinthians|corkcity|coys|crewealexandra|cruzazul|cruzeiro|crystalpalace|cska|dagandred|dash|degraafschap|deportivo|dfb|diablosrojos|dieschanzer|diewolfe|dif|dinamobucuresti|dynamo|efb|effzeh|eintracht|emelec|everton|fgr|fiorentina|flamengo|fohlenelf|ftlstrikers|fulbo|futbolmx|futebol|galatasaray|gallosblancos|galo|gcz|godset|gremio|gunners|hajduksplit|hammarby|hammers|hannover96|hellasverona|hsv|iltoro|independiente|indyeleven|internacional|jaguares|juve|kaagent|knvb|konyaspor|kwunited|lafiera|lafranja|lagalaxy|lamasia|latics|lazio|leagues|leonesnegros|leytonorient|ligadequito|losc|lsk|ludogoretsrazgrad|mainz05|malmoff|mcfc|middlesbrough|mk_dons|moldefk|monarcas|nec|nense|netherlandsWorldCup|newcastlejets|nextgen|nffc|nkmaribor|nonleague|norskbrotball|norskfotball|npsl|nufc|nwsl|nycfc|nycosmos|oclions|oddrane|odenseboldklub|ogcnice|okcenergy|olympiakosfc|olympiquelyonnais|palermo|palmeiras|paok|pars|pne|psg|psv|pumasunam|qsl|racingclub|rapids|rayados|rayookc|rayovallecano|rbny|rclens|realbetis|realmadrid|reddevils|redstars|reggina|reignfc|riverhounds|rodajc|rojinegros|roteteufel|rscl|santos|sassuolo|scbraga|sccambuur|schalke04|scheerenveen|sdeibar|shamrockrovers|sheffieldwednesday|sjearthquakes|skrapid|skyblue|smcaen|soberano|sociedad|spl|stjohnstone|stpats|stvv|superhoops|sv98|svw|switchbacksfc|teammelli|tfc|thedarkblues|themassive|theposh|thorns|threelions|tiburonesrojos|tigre|tigres|timbers|trabzonspor|tuzos|udinese|uruguaysoccer|urz|uslpro|vasco|veilchen|velezsarsfield|vestegnen|vif|vikingfk|vinotinto|vitessearnhem|vitoria1922|washingtonspirit|weownourfc|wsw|wwfc|yfmarinos|zamalek|zenit)$/i"
+    ]
+  }
+}
