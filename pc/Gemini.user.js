@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Gemini - Auto Model - Ctrl 1,2,3,4 to Toggle Models - Ctrl+Enter to Send
 // @namespace    http://tampermonkey.net/
-// @version      3.2.0
-// @description  Defaults to configured model/thinking level on load. Enter creates a new line. Ctrl+Enter sends.
+// @version      3.4.0
+// @description  Defaults to configured model/thinking level on load. Uses native Ctrl+Shift+M for fast model switching. Enter = newline, Ctrl+Enter = send.
 // @author       Alucrud
 // @icon         https://t3.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=http://gemini.google.com&size=16
 // @match        https://gemini.google.com/*
@@ -21,6 +21,7 @@
         defaultThinkingKey: 'medium',
         thinkingCycleHotkey: '4',
         thinkingCycleOrder: ['low', 'medium', 'high'],
+        useNativeModelCycleShortcut: true, // Uses Ctrl+Shift+M to switch base models without opening the menu
 
         models: {
             lite: {
@@ -30,7 +31,7 @@
             },
             fast: {
                 hotkey: '2',
-                keywords: ['hydrogen', 'flash'], // Matches either name during rollouts
+                keywords: ['hydrogen', 'flash'],
                 exclude: ['lite']
             },
             pro: {
@@ -42,7 +43,8 @@
 
         thinkingLevels: {
             low: {
-                keywords: ['low']
+                keywords: ['low'],
+                isHiddenOnButton: true
             },
             medium: {
                 keywords: ['medium']
@@ -54,7 +56,8 @@
     };
     // =========================================================================
 
-    var isAutoSelecting = false;
+    var isBusy = false;
+    var lastKnownThinkingKey = null;
 
     function matchesConfigEntry(text, entry) {
         if (!text || !entry || !entry.keywords) return false;
@@ -77,6 +80,25 @@
         return false;
     }
 
+    function getActiveThinkingKey(buttonText) {
+        var keys = Object.keys(CONFIG.thinkingLevels);
+        var hiddenFallbackKey = null;
+
+        for (var i = 0; i < keys.length; i++) {
+            var key = keys[i];
+            var entry = CONFIG.thinkingLevels[key];
+            if (entry.isHiddenOnButton) {
+                hiddenFallbackKey = key;
+            }
+            if (matchesConfigEntry(buttonText, entry)) {
+                lastKnownThinkingKey = key;
+                return key;
+            }
+        }
+
+        return hiddenFallbackKey || lastKnownThinkingKey;
+    }
+
     function getModelKeyByHotkey(pressedKey) {
         var keys = Object.keys(CONFIG.models);
         for (var i = 0; i < keys.length; i++) {
@@ -89,6 +111,7 @@
 
     // Hotkey listener configuration
     document.addEventListener('keydown', function(e) {
+        if (!e.isTrusted) return;
         if (!e.ctrlKey || e.altKey || e.shiftKey) return;
 
         var key = e.key;
@@ -114,106 +137,193 @@
     function getPickerLabelText(pickerBtn) {
         if (!pickerBtn) return '';
         var label = pickerBtn.querySelector('.picker-primary-text, [data-test-id="logo-pill-label-container"]') || pickerBtn;
-        return label ? label.innerText : '';
+        return label ? label.innerText.trim() : '';
+    }
+
+    function isMenuOpen(pickerBtn) {
+        return (pickerBtn && pickerBtn.getAttribute('aria-expanded') === 'true') ||
+               !!document.querySelector('gem-menu[role="menu"], [data-test-id="gem-mode-menu"], .mat-mdc-menu-panel');
     }
 
     async function ensureMenuOpen(pickerBtn) {
-        if (pickerBtn.getAttribute('aria-expanded') !== 'true') {
+        if (!isMenuOpen(pickerBtn)) {
             pickerBtn.click();
             var startTime = Date.now();
-            while (pickerBtn.getAttribute('aria-expanded') !== 'true' && (Date.now() - startTime) < 1500) {
-                await sleep(50);
+            while (!isMenuOpen(pickerBtn) && (Date.now() - startTime) < 1500) {
+                await sleep(40);
             }
         }
-        return await waitForElement('gem-menu[role="menu"], [data-test-id="gem-mode-menu"], .mat-mdc-menu-panel', 3000);
+        return await waitForElement('gem-menu[role="menu"], [data-test-id="gem-mode-menu"], .mat-mdc-menu-panel', 2500);
     }
 
     async function closeMenuIfOpen(pickerBtn) {
-        if (pickerBtn && pickerBtn.getAttribute('aria-expanded') === 'true') {
-            document.body.click();
-            await waitForMenuClose(pickerBtn, 1000);
+        if (!isMenuOpen(pickerBtn)) return;
+
+        // Dispatch Escape to cleanly close Angular Material / CDK overlay menus
+        document.dispatchEvent(new KeyboardEvent('keydown', {
+            key: 'Escape',
+            code: 'Escape',
+            keyCode: 27,
+            which: 27,
+            bubbles: true,
+            cancelable: true
+        }));
+
+        await waitForMenuClose(pickerBtn, 800);
+
+        // Fallback click if still open
+        if (isMenuOpen(pickerBtn)) {
+            var backdrop = document.querySelector('.cdk-overlay-backdrop');
+            if (backdrop) {
+                backdrop.click();
+            } else {
+                document.body.click();
+            }
+            await waitForMenuClose(pickerBtn, 600);
         }
+    }
+
+    // Dispatches Gemini's native Ctrl+Shift+M shortcut to cycle base models without opening the menu
+    async function cycleModelViaNativeShortcut(pickerBtn, targetModelEntry) {
+        var maxCycles = Object.keys(CONFIG.models).length + 1;
+
+        for (var i = 0; i < maxCycles; i++) {
+            var beforeText = getPickerLabelText(pickerBtn);
+            if (matchesConfigEntry(beforeText, targetModelEntry)) {
+                return true;
+            }
+
+            var target = document.activeElement || document.body;
+            target.dispatchEvent(new KeyboardEvent('keydown', {
+                key: 'M',
+                code: 'KeyM',
+                keyCode: 77,
+                which: 77,
+                ctrlKey: true,
+                shiftKey: true,
+                bubbles: true,
+                cancelable: true
+            }));
+
+            // Wait briefly for label text to change
+            var startTime = Date.now();
+            var changed = false;
+            while ((Date.now() - startTime) < 500) {
+                var nowText = getPickerLabelText(pickerBtn);
+                if (nowText && nowText !== beforeText) {
+                    changed = true;
+                    break;
+                }
+                await sleep(30);
+            }
+
+            if (!changed) {
+                // Native shortcut didn't trigger a change (e.g. focus context issue), fall back to menu click
+                return false;
+            }
+        }
+
+        return matchesConfigEntry(getPickerLabelText(pickerBtn), targetModelEntry);
     }
 
     async function setThinkingLevel(thinkingKey, pickerBtn) {
         var thinkingEntry = CONFIG.thinkingLevels[thinkingKey];
-        if (!thinkingEntry) return;
+        if (!thinkingEntry) return false;
 
         var menuContainer = await ensureMenuOpen(pickerBtn);
-        if (!menuContainer) return;
+        if (!menuContainer) return false;
 
         var targetItem = await waitForMenuItem(
             menuContainer,
             'gem-menu-item, [role="menuitem"], [role="menuitemradio"], [role="menuitemcheckbox"], .mat-mdc-menu-item',
             thinkingEntry,
-            3000
+            2500
         );
 
         if (targetItem) {
             targetItem.click();
-            await sleep(150);
+            lastKnownThinkingKey = thinkingKey;
+            await sleep(120);
+            return true;
         }
+        return false;
     }
 
     async function cycleThinkingLevel() {
-        var pickerBtn = getPickerButton();
-        if (!pickerBtn) return;
+        if (isBusy) return;
+        isBusy = true;
 
-        var currentText = getPickerLabelText(pickerBtn);
-        var order = CONFIG.thinkingCycleOrder;
-        var currentIndex = -1;
+        try {
+            var pickerBtn = getPickerButton();
+            if (!pickerBtn) return;
 
-        for (var i = 0; i < order.length; i++) {
-            if (matchesConfigEntry(currentText, CONFIG.thinkingLevels[order[i]])) {
-                currentIndex = i;
-                break;
-            }
+            var currentText = getPickerLabelText(pickerBtn);
+            var activeKey = getActiveThinkingKey(currentText);
+            var order = CONFIG.thinkingCycleOrder;
+            var currentIndex = activeKey ? order.indexOf(activeKey) : -1;
+
+            var nextIndex = (currentIndex === -1) ? 0 : (currentIndex + 1) % order.length;
+            var nextLevelKey = order[nextIndex];
+
+            await setThinkingLevel(nextLevelKey, pickerBtn);
+            await closeMenuIfOpen(pickerBtn);
+            focusChatbox();
+        } finally {
+            isBusy = false;
         }
-
-        var nextIndex = (currentIndex === -1) ? 0 : (currentIndex + 1) % order.length;
-        var nextLevelKey = order[nextIndex];
-
-        await setThinkingLevel(nextLevelKey, pickerBtn);
-        await closeMenuIfOpen(pickerBtn);
-        focusChatbox();
     }
 
     async function executeSelection(modelKey, thinkingKey) {
-        var modelEntry = CONFIG.models[modelKey];
-        if (!modelEntry) return;
+        if (isBusy) return;
+        isBusy = true;
 
-        var pickerBtn = getPickerButton();
-        if (!pickerBtn) return;
+        try {
+            var modelEntry = CONFIG.models[modelKey];
+            if (!modelEntry) return;
 
-        var currentText = getPickerLabelText(pickerBtn);
-        var isBaseModelActive = matchesConfigEntry(currentText, modelEntry);
+            var pickerBtn = getPickerButton();
+            if (!pickerBtn) return;
 
-        if (!isBaseModelActive) {
-            var menuContainer = await ensureMenuOpen(pickerBtn);
-            if (!menuContainer) return;
+            var currentText = getPickerLabelText(pickerBtn);
+            var isBaseModelActive = matchesConfigEntry(currentText, modelEntry);
 
-            var targetItem = await waitForMenuItem(
-                menuContainer,
-                'gem-menu-item, [role="menuitem"], .mat-mdc-menu-item, [data-test-id^="bard-mode-option-"]',
-                modelEntry,
-                3000
-            );
+            if (!isBaseModelActive) {
+                var switchedViaShortcut = false;
 
-            if (targetItem) {
-                targetItem.click();
-                await waitForButtonTextToMatch(pickerBtn, modelEntry, 3000);
+                if (CONFIG.useNativeModelCycleShortcut && !isMenuOpen(pickerBtn)) {
+                    switchedViaShortcut = await cycleModelViaNativeShortcut(pickerBtn, modelEntry);
+                }
+
+                if (!switchedViaShortcut) {
+                    var menuContainer = await ensureMenuOpen(pickerBtn);
+                    if (!menuContainer) return;
+
+                    var targetItem = await waitForMenuItem(
+                        menuContainer,
+                        'gem-menu-item, [role="menuitem"], .mat-mdc-menu-item, [data-test-id^="bard-mode-option-"]',
+                        modelEntry,
+                        2500
+                    );
+
+                    if (targetItem) {
+                        targetItem.click();
+                        await waitForButtonTextToMatch(pickerBtn, modelEntry, 2500);
+                    }
+                }
             }
-        }
 
-        if (thinkingKey && CONFIG.thinkingLevels[thinkingKey]) {
-            currentText = getPickerLabelText(pickerBtn);
-            if (!matchesConfigEntry(currentText, CONFIG.thinkingLevels[thinkingKey])) {
-                await setThinkingLevel(thinkingKey, pickerBtn);
+            if (thinkingKey && CONFIG.thinkingLevels[thinkingKey]) {
+                currentText = getPickerLabelText(pickerBtn);
+                if (getActiveThinkingKey(currentText) !== thinkingKey) {
+                    await setThinkingLevel(thinkingKey, pickerBtn);
+                }
             }
-        }
 
-        await closeMenuIfOpen(pickerBtn);
-        focusChatbox();
+            await closeMenuIfOpen(pickerBtn);
+            focusChatbox();
+        } finally {
+            isBusy = false;
+        }
     }
 
     function focusChatbox() {
@@ -254,7 +364,7 @@
                     clearInterval(checkInterval);
                     resolve(false);
                 }
-            }, 50);
+            }, 40);
         });
     }
 
@@ -297,7 +407,7 @@
                     clearInterval(checkInterval);
                     resolve(null);
                 }
-            }, 50);
+            }, 40);
         });
     }
 
@@ -305,7 +415,7 @@
         return new Promise(function(resolve) {
             var startTime = Date.now();
             var checkInterval = setInterval(function() {
-                if (!button || button.getAttribute('aria-expanded') !== 'true' || (Date.now() - startTime) > timeoutMs) {
+                if (!isMenuOpen(button) || (Date.now() - startTime) > timeoutMs) {
                     clearInterval(checkInterval);
                     resolve();
                 }
@@ -344,37 +454,31 @@
     }
 
     async function initAutoModel() {
-        if (isAutoSelecting) return;
-        isAutoSelecting = true;
+        if (isBusy) return;
 
-        try {
-            await waitForTabToBeVisible();
+        await waitForTabToBeVisible();
 
-            var pickerBtn = await waitForElement('button[data-test-id="bard-mode-menu-button"], button.input-area-switch, [data-test-id="logo-pill-label-container"]', 15000);
-            if (!pickerBtn) return;
+        var pickerBtn = await waitForElement('button[data-test-id="bard-mode-menu-button"], button.input-area-switch, [data-test-id="logo-pill-label-container"]', 15000);
+        if (!pickerBtn) return;
 
-            var defaultModel = CONFIG.models[CONFIG.defaultModelKey];
-            var defaultThinking = CONFIG.thinkingLevels[CONFIG.defaultThinkingKey];
+        var defaultModel = CONFIG.models[CONFIG.defaultModelKey];
 
-            var attempts = 0;
-            while (attempts < 3) {
-                var currentText = getPickerLabelText(pickerBtn);
+        var attempts = 0;
+        while (attempts < 3) {
+            var currentText = getPickerLabelText(pickerBtn);
 
-                if (matchesConfigEntry(currentText, defaultModel) && matchesConfigEntry(currentText, defaultThinking)) {
-                    break;
-                }
-
-                await executeSelection(CONFIG.defaultModelKey, CONFIG.defaultThinkingKey);
-                await sleep(300);
-
-                currentText = getPickerLabelText(pickerBtn);
-                if (matchesConfigEntry(currentText, defaultModel) && matchesConfigEntry(currentText, defaultThinking)) {
-                    break;
-                }
-                attempts++;
+            if (matchesConfigEntry(currentText, defaultModel) && getActiveThinkingKey(currentText) === CONFIG.defaultThinkingKey) {
+                break;
             }
-        } finally {
-            isAutoSelecting = false;
+
+            await executeSelection(CONFIG.defaultModelKey, CONFIG.defaultThinkingKey);
+            await sleep(300);
+
+            currentText = getPickerLabelText(pickerBtn);
+            if (matchesConfigEntry(currentText, defaultModel) && getActiveThinkingKey(currentText) === CONFIG.defaultThinkingKey) {
+                break;
+            }
+            attempts++;
         }
     }
 
