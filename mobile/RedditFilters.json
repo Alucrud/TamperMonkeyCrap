@@ -36,7 +36,9 @@
       "/(peterexplains|explainthejoke)/i",
       "/^(genshin|honkai|zenless|wuthering|starrail)|^zzz$/i",
       "/(^fc|fc$|united$|rovers$|wanderers$|hotspur$|albion$|athletic$|calcio$|football$|soccer$)/i",
-      "/^(fc|ac|as|rc|sc|cd|ud|vfb|vfl|sv|tsv|1fc)[a-z0-9_]+$/i"
+      "/^(fc|ac|as|rc|sc|cd|ud|vfb|vfl|sv|tsv|1fc)[a-z0-9_]+$/i",
+      "news",
+      "/(.*india.*)/i"
     ],
     "exactMatch": [
       "/^(de|eve|wow|ufc|nba|nfl|nhl|mlb|mls|cfb|btc|lsd|see|osu|ps4|tf2|fo4|eu4|civ|asu|ecu|gmu|lsu|smu|tcu|ucf|usc|usf|vcu|wde|wfu|wsu)$/i"
