@@ -24,7 +24,7 @@
     ],
     "misc": [
       "/\\bspiders?\\b/i",
-      "/\\bGTA\\b/i"
+      "/\\bGTA6?\\b/i"
     ]
   },
   "subredditCategories": {
