@@ -23,7 +23,8 @@
       "<~"
     ],
     "misc": [
-      "/\\bspiders?\\b/i"
+      "/\\bspiders?\\b/i",
+      "/\\bGTA\\b/i"
     ]
   },
   "subredditCategories": {
